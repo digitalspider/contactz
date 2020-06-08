@@ -40,9 +40,9 @@ Resources:
       SecretString:
         Fn::Join: ['', ['{"host": "',
           Fn::GetAtt: DBInstance.Endpoint.Address,
-          Fn::Sub: '", "port": "',
+          '", "port": "',
           Fn::GetAtt: DBInstance.Endpoint.Port,
-          '", "dbname": "${DBName}", "username": "${DBUserName}", "sg": "${DBSecurityGroup}", "key": "${RDSEncryptionKeyAlias}"}' ]]
+          Fn::Sub: '", "dbname": "${DBName}", "username": "${DBUserName}", "password": "${DBPassword}", "sg": "${DBSecurityGroup}", "key": "${RDSEncryptionKeyAlias}"}' ]]
       Tags:
         - Key: contactz
           Value: contactz-db
