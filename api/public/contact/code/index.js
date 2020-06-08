@@ -16,6 +16,8 @@ exports.handler = async (event, _context) => {
     const method = event.httpMethod;
     const id = event.pathParameters ? event.pathParameters.id : null;
     console.log(`id=${id}`);
+    const tableName = event.path ? event.path.split('/')[0] : null;
+    console.log(`tableName=${tableName}`);
     let result;
 
     switch (method) {
