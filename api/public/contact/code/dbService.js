@@ -28,7 +28,7 @@ function init() {
       database: dbConfig.dbname,
       host: dbConfig.host,
       port: dbConfig.port,
-      max: 100
+      max: 10
     };
     dbPool = new pg.Pool(config);
   }
@@ -52,7 +52,7 @@ async function executeSqlQuery(sqlQuery, values) {
 }
 
 async function validate(userId, id) {
-  const sqlQuery = `select id, owner from ${tableName} where id = $1`;
+  const sqlQuery = `select id, owner from ${tableName} where id = $1 and (deleted_at is null or deleted_at > now())`;
   const values = [id];
   const result = await executeSqlQuery(sqlQuery, values);
   if (result && result.rows.length === 0) {
@@ -64,10 +64,12 @@ async function validate(userId, id) {
   }
 }
 
-async function list(userId) {
-  const sqlQuery = `select * from ${tableName} where owner = $1`;
-  const values = [userId];
-  return executeSqlQuery(sqlQuery, values);
+async function list(userId, searchTerm) {
+  const searchParam = searchTerm ? `%${searchTerm}%` : '%';
+  const sqlQuery = `select * from ${tableName} where owner = $1 and name like $2 and (deleted_at is null or deleted_at > now())`;
+  const values = [userId, searchParam];
+  const results = await executeSqlQuery(sqlQuery, values);
+  return results.rows;
 }
 
 async function create(userId, body) {
@@ -81,7 +83,8 @@ async function get(userId, id) {
   await validate(userId, id);
   const sqlQuery = `select * from ${tableName} where owner = $1 and id = $2`;
   const values = [userId, id];
-  return executeSqlQuery(sqlQuery, values);
+  const results = await executeSqlQuery(sqlQuery, values);
+  return results.rows[0];
 }
 
 async function update(userId, id, body) {
@@ -93,9 +96,16 @@ async function update(userId, id, body) {
 
 async function softDelete(userId, id) {
   await validate(userId, id);
+  const sqlQuery = `update ${tableName} set deleted_at = now() where owner = $1 and id = $2`;
+  const values = [userId, id];
+  return executeSqlQuery(sqlQuery, values);
+}
+
+async function hardDelete(userId, id) {
+  await validate(userId, id);
   const sqlQuery = `delete from ${tableName} where owner = $1 and id = $2`;
   const values = [userId, id];
   return executeSqlQuery(sqlQuery, values);
 }
 
-module.exports = {list, get, create, update, softDelete};
+module.exports = {list, get, create, update, softDelete, hardDelete};

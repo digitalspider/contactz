@@ -21,7 +21,8 @@ exports.handler = async (event, _context) => {
     switch(method) {
       case 'GET':
         if (!id) {
-          result = await dbService.list(userId);
+          const searchTerm = event.pathParameters ? event.pathParameters.q : null;
+          result = await dbService.list(userId, searchTerm);
         } else {
           result = await dbService.get(userId, id);
         }
