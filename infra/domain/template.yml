@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  api-domain
+  SAM Template for the API Domain Name
+Parameters:
+  HostedZoneId:
+    Type: String
+    Description: The HostedZoneId for the Route53 setup
+  DomainName:
+    Type: String
+    Description: The custom domain for the API
+  CertificateArn:
+    Type: String
+    Description: The ACM certificate ARN
+
+Resources:
+  ApiDomain:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName:
+        Ref: DomainName
+      DomainNameConfigurations:
+        - CertificateArn:
+            Ref: CertificateArn
+          CertificateName: API Certificate
+          EndpointType: REGIONAL
+
+  Route53:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Ref: HostedZoneId
+      Name:
+        Ref: DomainName
+      Comment: API
+      Region: ap-southeast-2
+      AliasTarget:
+        DNSName:
+          Fn::GetAtt: ApiDomain.RegionalDomainName
+        HostedZoneId:
+          Fn::GetAtt: ApiDomain.RegionalHostedZoneId
+      SetIdentifier: 1
+      Type: A
+
+Outputs:
+  Domain:
+    Description: API Domain URL
+    Value:
+      Ref: ApiDomain
+  DomainLInk:
+    Description: The Route 53 alias for the API Gateway
+    Value:
+      Fn::GetAtt: ApiDomain.RegionalDomainName
+  DomainLInk3:
+    Description: The Route 53 HostedZoneId for the API Gateway
+    Value:
+      Fn::GetAtt: ApiDomain.RegionalHostedZoneId

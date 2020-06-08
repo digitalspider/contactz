@@ -1,0 +1,424 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  vpc-network
+
+  SAM Template for VPC Network
+
+Parameters:
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 16.16.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+      - Key: Name
+        Value:  contactz-vpc
+  VPCSubnetPrivateAPSE2A:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 16.16.0.0/24
+      AvailabilityZone: "ap-southeast-2a"
+      Tags:
+        - Key: Name
+          Value: subnet-private-apse2a
+  VPCSubnetPrivateAPSE2B:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 16.16.1.0/24
+      AvailabilityZone: "ap-southeast-2b"
+      Tags:
+        - Key: Name
+          Value: subnet-private-apse2b
+  VPCSubnetPrivateAPSE2C:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 16.16.2.0/24
+      AvailabilityZone: "ap-southeast-2c"
+      Tags:
+        - Key: Name
+          Value: subnet-private-apse2c
+  VPCSubnetPublicAPSE2A:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 16.16.16.0/24
+      AvailabilityZone: "ap-southeast-2a"
+      Tags:
+        - Key: Name
+          Value: subnet-public-apse2a
+  VPCSubnetPublicAPSE2B:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 16.16.17.0/24
+      AvailabilityZone: "ap-southeast-2b"
+      Tags:
+        - Key: Name
+          Value: subnet-public-apse2b
+  VPCSubnetPublicAPSE2C:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 16.16.18.0/24
+      AvailabilityZone: "ap-southeast-2c"
+      Tags:
+        - Key: Name
+          Value: subnet-public-apse2c
+
+  IGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: VPC
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: vpc-ex
+      VpcId:
+        Ref: VPC
+  Route:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId:
+        Ref: IGW
+      RouteTableId:
+        Ref: RouteTable
+
+  VPCIGW:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId:
+        Ref: IGW
+      VpcId:
+        Ref: VPC
+
+  VPCSubnetAssocPublicAPSE2A:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: RouteTable
+      SubnetId:
+        Ref: VPCSubnetPublicAPSE2A
+  VPCSubnetAssocPublicAPSE2B:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: RouteTable
+      SubnetId:
+        Ref: VPCSubnetPublicAPSE2B
+  VPCSubnetAssocPublicAPSE2C:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: RouteTable
+      SubnetId:
+        Ref: VPCSubnetPublicAPSE2C
+
+  ElasticIpAPSE2A:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: ip-vpc-apse2a
+  ElasticIpAPSE2B:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: ip-vpc-apse2b
+  ElasticIpAPSE2C:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+        - Key: Name
+          Value: ip-vpc-apse2c
+  NATGatewayAPSE2A:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt: ElasticIpAPSE2A.AllocationId
+      SubnetId:
+        Ref: VPCSubnetPublicAPSE2A
+      Tags:
+        - Key: Name
+          Value: nat-gw-vpc-apse2a
+  NATGatewayAPSE2B:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt: ElasticIpAPSE2B.AllocationId
+      SubnetId:
+        Ref: VPCSubnetPublicAPSE2B
+      Tags:
+        - Key: Name
+          Value: nat-gw-vpc-apse2b
+  NATGatewayAPSE2C:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId:
+        Fn::GetAtt: ElasticIpAPSE2C.AllocationId
+      SubnetId:
+        Ref: VPCSubnetPublicAPSE2C
+      Tags:
+        - Key: Name
+          Value: nat-gw-vpc-apse2c
+
+  NATRouteTableAPSE2A:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: rt-vpc-public-apse2a
+      VpcId:
+        Ref: VPC
+  NATRouteTableAPSE2B:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: rt-vpc-public-apse2b
+      VpcId:
+        Ref: VPC
+  NATRouteTableAPSE2C:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      Tags:
+        - Key: Name
+          Value: rt-vpc-public-apse2c
+      VpcId:
+        Ref: VPC
+
+  NATRouteAPSE2A:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId:
+        Ref: NATGatewayAPSE2A
+      RouteTableId:
+        Ref: NATRouteTableAPSE2A
+  NATRouteAPSE2B:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId:
+        Ref: NATGatewayAPSE2B
+      RouteTableId:
+        Ref: NATRouteTableAPSE2B
+  NATRouteAPSE2C:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: '0.0.0.0/0'
+      NatGatewayId:
+        Ref: NATGatewayAPSE2C
+      RouteTableId:
+        Ref: NATRouteTableAPSE2C
+
+  VPCSubnetAssocPrivateAPSE2A:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: NATRouteTableAPSE2A
+      SubnetId:
+        Ref: VPCSubnetPrivateAPSE2A
+  VPCSubnetAssocPrivateAPSE2B:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: NATRouteTableAPSE2B
+      SubnetId:
+        Ref: VPCSubnetPrivateAPSE2B
+  VPCSubnetAssocPrivateAPSE2C:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId:
+        Ref: NATRouteTableAPSE2C
+      SubnetId:
+        Ref: VPCSubnetPrivateAPSE2C
+
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'VPC Bastion security group'
+      GroupName: 'VPC-bastion-sg'
+      SecurityGroupIngress:
+      - Description: Admins Home IP
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp:  116.255.18.54/32
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+      VpcId:
+        Ref: VPC
+  # Bastion:
+  #   Type: AWS::EC2::Instance
+  #   Properties:
+  #     InstanceType: t2.micro
+  #     ImageId: ami-0c59d27e0a499a564
+  #     KeyName: pingdata-keypair
+  #     NetworkInterfaces:
+  #       - AssociatePublicIpAddress: true
+  #         DeviceIndex: "0"
+  #         GroupSet:
+  #           - Ref: BastionSecurityGroup
+  #         SubnetId:
+  #           Ref: VPCSubnetPublicAPSE2A
+  #     Tags:
+  #       - Key: Name
+  #         Value: VPC Bastion
+
+  VPCPrivateSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'VPC private security group'
+      GroupName: 'security-group-private'
+      SecurityGroupIngress:
+      - Description: VPC SSH
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 16.16.0.0/20 # Private subnets
+      - Description: VPC HTTP
+        IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 16.16.0.0/20
+      - Description: VPC HTTPS
+        IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 16.16.0.0/20
+      - Description: Bastion Access
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp:
+          Fn::Join: ['', [Fn::GetAtt: Bastion.PrivateIp, '/32']]
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+      VpcId:
+        Ref: VPC
+  VPCPublicSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'VPC public security group'
+      GroupName: 'security-group-public'
+      SecurityGroupIngress:
+      - Description: VPC SSH
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 16.16.16.0/20 # Public subnets
+      - Description: VPC HTTP
+        IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 16.16.16.0/20
+      - Description: VPC HTTPS
+        IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 16.16.16.0/20
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+      VpcId:
+        Ref: VPC
+  VPCSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'VPC Public/Private security group'
+      GroupName: 'security-group-common'
+      SecurityGroupIngress:
+      - Description: VPC SSH
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 16.16.0.0/16
+      - Description: VPC HTTP
+        IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 16.16.0.0/16
+      - Description: VPC HTTPS
+        IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 16.16.0.0/16
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+      VpcId:
+        Ref: VPC
+
+  VPCSecretsEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PolicyDocument: '{
+        "Version":"2012-10-17",
+        "Statement":[{
+          "Effect":"Allow",
+          "Principal": "*",
+          "Action":[
+            "secretsmanager:Describe*",
+            "secretsmanager:Get*",
+            "secretsmanager:List*"
+          ],
+          "Resource":["arn:aws:secretsmanager:ap-southeast-2:*"]
+        }]
+      }'
+      PrivateDnsEnabled: true
+      SecurityGroupIds:
+        - Ref: VPCSecurityGroup
+      ServiceName: com.amazonaws.ap-southeast-2.secretsmanager
+      SubnetIds:
+        - Ref: VPCSubnetPrivateAPSE2A
+        - Ref: VPCSubnetPrivateAPSE2B
+        - Ref: VPCSubnetPrivateAPSE2C
+      VpcEndpointType: Interface
+      VpcId:
+        Ref: VPC
+
+  VPCSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: vpc-secret
+      Description: "VPC Network info"
+      SecretString:
+        Fn::Join: ['', ['{"vpc": "', Ref: VPC, '", "subnet-private-apse2a": "', Ref: VPCSubnetPrivateAPSE2A,'", "subnet-private-apse2b": "', Ref: VPCSubnetPrivateAPSE2B,'", "subnet-private-apse2c": "', Ref: VPCSubnetPrivateAPSE2C,'", "sg": "', Ref: VPCSecurityGroup,'", "sg-private": "', Ref: VPCPrivateSecurityGroup,'", "sg-public": "', Ref: VPCPublicSecurityGroup,'"}']]
+
+Outputs:
+  VPC:
+    Description: The VPC
+    Value:
+      Ref: VPC
+  VPCCidrBlock:
+    Description: The VPC
+    Value:
+      Fn::GetAtt: VPC.CidrBlock
+  VPCSecret:
+    Description: The VPC
+    Value:
+      Ref: VPCSecret

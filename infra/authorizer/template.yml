@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  authorizer-lambda
+  SAM Template provides an authorizer lambda.
+Parameters:
+  VPCSecret:
+    Type: String
+    Description: The required name of the SecretsManager that has the vpc id
+    Default: vpc-secret
+  AuthSecret:
+    Type: String
+    Description: The generated name of the SecretsManager that has the auth lambda ARN
+    Default: auth-secret
+  JwtSecret:
+    Type: String
+    Description: The jwt secret required by the auth lambda
+
+Resources:
+  AuthSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name:
+        Ref: AuthSecret
+      Description: "Authorizer lambda"
+      SecretString:
+        Fn::Join: ["", ['{"auth-arn": "', Fn::GetAtt: AuthFunction.Arn, '"}']]
+
+  AuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Role:
+        Fn::GetAtt: DecryptDbConfigWithKey.Arn
+      CodeUri: code
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Description: Authorizer lambda validates JWT
+      FunctionName: sam-authorizer
+      Timeout: 10
+      Tracing: Active
+      Environment:
+        Variables:
+          JWT_SECRET:
+            Ref: JwtSecret
+      Layers:
+        - Ref: AuthDependenciesLayer
+
+  AuthDependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: authorizer-dependencies
+      Description: All dependencies for authorizer
+      ContentUri: dependencies/
+      CompatibleRuntimes:
+        - nodejs12.x
+      RetentionPolicy: Delete
+
+  DecryptDbConfigWithKey:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Allows a lambda to access the KMS key to decrypt DB config data
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+      Policies:
+        - PolicyName: "DbDecryptKeyAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:ReEncrypt*"
+                  - "kms:GenerateDataKey*"
+                  - "kms:DescribeKey"
+                Resource: "*"
+        - PolicyName: "DbSecretManagerAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:DescribeSecret"
+                  - "secretsmanager:GetSecretValue"
+                Resource: "*"
+        - PolicyName: "XRayAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow" # xray permissions (required)
+                Action:
+                  - "xray:PutTraceSegments"
+                  - "xray:PutTelemetryRecords"
+                Resource:
+                  - "*"
+
+Outputs:
+  AuthFunction:
+    Description: "The authorizer lambda ARN"
+    Value:
+      Fn::GetAtt: AuthFunction.Arn

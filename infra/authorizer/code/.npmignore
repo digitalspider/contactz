@@ -1,0 +1,6 @@
+.aws-sam
+samconfig.toml
+template.yml
+yarn.lock
+tests/**/*
+dependencies/**/*
