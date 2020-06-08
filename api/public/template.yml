@@ -28,6 +28,10 @@ Parameters:
     Type: String
     Description: The api domain name
     Default: contactz.com.au
+  AuthLambdaName:
+    Type: String
+    Description: The domain for the API ApiMapping
+    Default: sam-authorizer
 Resources:
   AccessLogs:
     Type: AWS::Logs::LogGroup
@@ -56,10 +60,10 @@ Resources:
           Name: "AWS::Include"
           Parameters:
             Location: contact.openapi.yml
-      AccessLogSetting:
-        DestinationArn:
-          Fn::GetAtt: AccessLogs.Arn
-        Format: requestId:$context.requestId, method:$context.httpMethod, xrayId:$context.xrayTraceId, principalId:$context.authorizer.principalId
+      # AccessLogSetting:
+      #   DestinationArn:
+      #     Fn::GetAtt: AccessLogs.Arn
+      #   Format: requestId:$context.requestId, method:$context.httpMethod, xrayId:$context.xrayTraceId, principalId:$context.authorizer.principalId
       Tags:
         Name: API Gateway
         Description: API Gateway
