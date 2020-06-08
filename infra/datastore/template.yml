@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  db-rds
+
+  SAM Template for the Database
+
+Parameters:
+  DBName:
+    Type: String
+    Description: The database name
+    Default: contactz
+  DBUserName:
+    Type: String
+    Description: The database username
+    Default: contactz
+  DBPassword:
+    Type: String
+    Description: The database password
+    Default: contactz
+  VPCSecretName:
+    Type: String
+    Description: The name of the SecretsManager that has the vpc id
+    Default: vpc-secret
+  DbSecretName:
+    Type: String
+    Description: The name of the SecretsManager that has the database configuration
+    Default: db-secret
+  BastionIp:
+    Type: String
+    Description: The private IP address of the bastion which can access the DB
+    Default: '16.16.16.152'
+
+Resources:
+  DBSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name:
+        Ref: DbSecretName
+      Description: "Database connection"
+      SecretString:
+        Fn::Join: ['', ['{"host": "',
+          Fn::GetAtt: DBInstance.Endpoint.Address,
+          Fn::Sub: '", "port": "',
+          Fn::GetAtt: DBInstance.Endpoint.Port,
+          '", "dbname": "${DBName}", "username": "${DBUserName}", "sg": "${DBSecurityGroup}", "key": "${RDSEncryptionKeyAlias}"}' ]]
+      Tags:
+        - Key: contactz
+          Value: contactz-db
+
+  RDSEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      KeyPolicy:
+        Version: "2012-10-17"
+        Id:
+          Fn::Sub: ${DBName}-rds-kms-key
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS:
+                Fn::Join: ["", ["arn:aws:iam::", Ref: AWS::AccountId, ":root"]]
+            Action: "kms:*"
+            Resource: "*"
+  RDSEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName:
+        Fn::Sub: alias/${DBName}-rds-kms-key
+      TargetKeyId:
+        Ref: RDSEncryptionKey
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription:
+        Fn::Sub: "${DBName} Database subnet group"
+      DBSubnetGroupName:
+        Fn::Sub: "${DBName}-subnet-group"
+      SubnetIds:
+        - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2a}}' ]]
+        - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2b}}' ]]
+        - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2c}}' ]]
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription:
+        Fn::Sub: "${DBName} Database security group"
+      GroupName:
+        Fn::Sub: "security-group-db-${DBName}"
+      SecurityGroupIngress:
+        - Description: PSQL DB
+          IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 16.16.0.0/20 # Private subnets
+        - Description: Bastion Access
+          IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp:
+            Fn::Join: ["", [Ref: BastionIp, "/32"]]
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      VpcId:
+        Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:vpc}}' ]]
+
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AvailabilityZone: ap-southeast-2a
+      AllocatedStorage: 10
+      DBInstanceClass: db.t2.small
+      DBName:
+        Ref: DBName
+      Engine: postgres
+      MasterUsername:
+        Ref: DBUserName
+      MasterUserPassword:
+        Ref: DBPassword
+      MultiAZ: False
+      PubliclyAccessible: False
+      BackupRetentionPeriod: 0
+      DBInstanceIdentifier:
+        Fn::Sub: "${DBName}-db"
+      VPCSecurityGroups:
+        - Ref: DBSecurityGroup
+      DBSubnetGroupName:
+        Ref: DBSubnetGroup
+      KmsKeyId:
+        Ref: RDSEncryptionKey
+      StorageEncrypted: true
+
+Outputs:
+  RDSEncryptionKeyAlias:
+    Description: RDS KMS Encryption Key Alias
+    Value:
+      Ref: RDSEncryptionKeyAlias
+  DBInstanceAddress:
+    Description: RDS Address
+    Value:
+      Fn::GetAtt: DBInstance.Endpoint.Address
+  DBInstancePort:
+    Description: RDS Port
+    Value:
+      Fn::GetAtt: DBInstance.Endpoint.Port
