@@ -45,11 +45,11 @@ The SAM Resources are:
 To build and deploy this stack:
 
 ```
-sam build && sam deploy --profile team
+sam build && sam deploy --profile contactz
 ```
 
 To delete this stack:
 
 ```
-aws --profile team cloudformation delete-stack --stack-name vpc-network
+aws --profile contactz cloudformation delete-stack --stack-name vpc-network
 ```

@@ -20,5 +20,5 @@ sam build && sam deploy --parameter-overrides JwtSecret=abc
 To delete this stack:
 
 ```
-aws --profile team cloudformation delete-stack --stack-name authorizer-lambda
+aws --profile contactz cloudformation delete-stack --stack-name authorizer-lambda
 ```

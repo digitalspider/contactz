@@ -1,0 +1,390 @@
+openapi: 3.0.0
+info:
+  version: "1.0"
+  title: contact-public-api
+  description: Contact Public APIs
+tags:
+  - name: "contact"
+
+# AWS Validators
+x-amazon-apigateway-request-validators:
+  all:
+    validateRequestBody: true
+    validateRequestParameters: true
+  params-only:
+    validateRequestBody: false
+    validateRequestParameters: true
+x-amazon-apigateway-request-validator: params-only # Default
+
+servers:
+  - url: https://api.contactz.com.au/v1
+    description: Production server
+
+security:
+  - BearerAuth: []
+paths:
+  /contact:
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "contact"
+      operationId: ListContacts
+      description: |
+        List all contact in the database
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contactList"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    post:
+      tags:
+        - "contact"
+      operationId: CreateContact
+      description: |
+        Creates a new Contact in the Database
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contact"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contactResponse"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /contact/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: The id of the contact
+        schema:
+          $ref: "#/components/schemas/contactId"
+        required: true
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "contact"
+      operationId: GetContact
+      description: |
+        Get the specified contact
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contact"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    put:
+      tags:
+        - "contact"
+      operationId: UpdateContact
+      description: |
+        Update the specified contact
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contact"
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    delete:
+      tags:
+        - "contact"
+      operationId: DeleteContact
+      description: |
+        Delete a contact
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+    securityDefinitions:
+      type: apiKey
+      name: auth
+      in: header
+      x-amazon-apigateway-authtype: custom
+      x-amazon-apigateway-authorizer:
+        type: request
+        identitySource: method.request.header.Authorization
+        authorizerUri: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AuthLambdaName}/invocations
+        authorizerResultTtlInSeconds: 0
+  schemas:
+    contact:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/contactId"
+        external_id:
+          type: string
+          description: Optional Client provided ID for the given contact. Must be unique.
+          nullable: true
+          maxLength: 64
+        name:
+          type: string
+          description: The actual full name of this contact
+          nullable: false
+          maxLength: 64
+        preferred_name:
+          type: string
+          description: The preferred name of this contact
+          nullable: false
+          maxLength: 64
+        address:
+          $ref: "#/components/schemas/contactAddress"
+        date_of_birth:
+          $ref: "#/components/schemas/contactDateOfBirth"
+        gender:
+          $ref: "#/components/schemas/contactGender"
+      required:
+        - name
+    contactResponse:
+      type: object
+      properties:
+        xref:
+          $ref: "#/components/schemas/contactId"
+    contactList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/contact"
+    contactId:
+      type: string
+      description: The id of the contact
+      pattern: "^[a-zA-Z0-9]{0,64}}$"
+      readOnly: true
+      example: "123"
+    contactAddress:
+      type: object
+      description: Structure containing the contacts address information
+      required:
+        - street
+        - state
+        - postcode
+      properties:
+        street:
+          type: string
+          description: The street address
+        suburb:
+          type: string
+          description: The suburb
+          example: Toongabbie
+        state:
+          type: string
+          description: The state, one of NSW, VIC, WA, QLD, NT, TAS or ACT
+          pattern: ^(NSW|VIC|WA|QLD|NT|TAS|ACT)$
+          example: NSW
+          nullable: true
+        postcode:
+          type: string
+          description: The four digit (AU) postcode
+          pattern: "^[0-9]{4}$"
+          example: "2145"
+        country_code:
+          type: string
+          description: The ISO 3166 Alpha-2 country code. Australia is AU
+          pattern: ^([A-Z]{2}|[a-z]{2})$
+          example: AU
+    contactGender:
+      type: string
+      description: The contacts gender. Either male, female
+      enum:
+        - male
+        - female
+    contactDateOfBirth:
+      type: object
+      description: The contacts date of birth structure, consisting of a date field in \'YYYY-MM-DD\' format
+      properties:
+        date:
+          type: string
+          description: A date in YYYY-MM-DD format.
+          pattern: ^\d{4}-[01]\d-[0-3]\d$
+          example: "2020-12-25"
+
+    apiError:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The error message
+        code:
+          type: string
+          description: The error code
+          example: E00001
+        timestamp:
+          type: string
+          format: date-time
+          description: The timestamp that the error occurred
+        details:
+          type: string
+          description: Optional additional error details
+          nullable: true
+      required:
+        - message
+        - timestamp
+    apiUnauthorized:
+      type: object
+      properties:
+        message:
+          type: string
+          description: The error message
+          example: Unauthorized
+      required:
+        - message

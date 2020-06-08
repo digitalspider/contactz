@@ -1,0 +1,228 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Description: API Gateway, with associated lambdas for the Contactz lambda.
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+
+Parameters:
+  VPCSecretName:
+    Type: String
+    Description: The name of the SecretsManager that has the vpc id
+    Default: vpc-secret
+  AuthSecretName:
+    Type: String
+    Description: The name of the SecretsManager that has the auth lambda ARN
+    Default: auth-secret
+  DbSecretName:
+    Type: String
+    Description: The name of the SecretsManager that has the database configuration
+    Default: db-secret
+  StageName:
+    Type: String
+    Default: prod
+  DomainName:
+    Type: String
+    Description: The api domain name
+    Default: contactz.com.au
+Resources:
+  AccessLogs:
+    Type: AWS::Logs::LogGroup
+
+  PublicApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      StageName:
+        Ref: StageName
+      Auth:
+        DefaultAuthorizer: AuthLambdaRequestAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: False # CORS: removes Authorizer from the automatically created OPTIONS methods
+        Authorizers:
+          AuthLambdaRequestAuthorizer:
+            FunctionPayloadType: REQUEST
+            FunctionArn:
+              Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: AuthSecretName, ':SecretString:auth-arn}}' ]]
+            Identity:
+              ReauthorizeEvery: 0
+              Headers:
+                - Authorization
+      DefinitionBody:
+        Fn::Transform:
+          Name: "AWS::Include"
+          Parameters:
+            Location: contact.openapi.yml
+      AccessLogSetting:
+        DestinationArn:
+          Fn::GetAtt: AccessLogs.Arn
+        Format: requestId:$context.requestId, method:$context.httpMethod, xrayId:$context.xrayTraceId, principalId:$context.authorizer.principalId
+      Tags:
+        Name: API Gateway
+        Description: API Gateway
+  ContactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Role:
+        Fn::GetAtt: LambdaRole.Arn
+      CodeUri: contact/code
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Description: CRUD functions for contact endpoints
+      FunctionName: sam-lambda-contact
+      Environment:
+        Variables:
+          DB_SECRET:
+            Ref: DbSecretName
+      Tracing: Active
+      Layers:
+        - Ref: ContactDependenciesLayer
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::Join: ['', ['{{resolve:secretsmanager:', 'nab-db-config', ':SecretString:sg}}' ]]
+        SubnetIds:
+          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2a}}' ]]
+          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2b}}' ]]
+          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2c}}' ]]
+      Events:
+        ListContacts:
+          Type: Api
+          Properties:
+            Path: /contacts
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        GetContact:
+          Type: Api
+          Properties:
+            Path: /contact/{id}
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        CreateContact:
+          Type: Api
+          Properties:
+            Path: /contact
+            Method: post
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        UpdateContact:
+          Type: Api
+          Properties:
+            Path: /contact/{id}
+            Method: put
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        DeleteContact:
+          Type: Api
+          Properties:
+            Path: /contact/{id}
+            Method: delete
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+
+  ContactDependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: contact-dependencies
+      Description: All dependencies for contact lambda
+      ContentUri: contact/code/dependencies/
+      CompatibleRuntimes:
+        - nodejs12.x
+      RetentionPolicy: Delete
+
+  ApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn:
+      - PublicApiStage # Needs the API to be set up, before mapping # https://github.com/awslabs/serverless-application-model/issues/192
+    Properties:
+      ApiId:
+        Ref: PublicApi
+      DomainName:
+        Ref: DomainName
+      Stage:
+        Ref: StageName
+      ApiMappingKey: v1
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Allows a lambda to access the KMS key to decrypt DB config data
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+      Policies:
+        - PolicyName: "DecryptKMSAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "kms:Decrypt"
+                  - "kms:DescribeKey"
+                  - "kms:GenerateDataKey"
+                Resource: "*"
+        - PolicyName: "SecretManagerAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:DescribeSecret"
+                  - "secretsmanager:GetSecretValue"
+                Resource: "*"
+        - PolicyName: "XRayAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow" # xray permissions (required)
+                Action:
+                  - "xray:PutTraceSegments"
+                  - "xray:PutTelemetryRecords"
+                Resource:
+                  - "*"
+        - PolicyName: "CloudWatchAccess"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "logs:*"
+                Resource:
+                  - "*"
+
+Outputs:
+  PublicApiUrl:
+    Description: URL of the API endpoint
+    Value:
+      Fn::Sub: "https://${PublicApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/${StageName}/"
+  PublicApiId:
+    Description: Api id of PublicApi
+    Value:
+      Ref: PublicApi
+  ContactFunction:
+    Description: "The contact lambda ARN"
+    Value:
+      Fn::GetAtt: ContactFunction.Arn

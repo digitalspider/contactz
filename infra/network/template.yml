@@ -9,6 +9,10 @@ Parameters:
     Type: String
     Description: The Name of the VPC
     Default: contactz-vpc
+  KeyPairName:
+    Type: String
+    Description: The KeyPair name to access the Bastion
+    Default: szweb01
 
 Resources:
   VPC:
@@ -277,22 +281,23 @@ Resources:
         CidrIp: 0.0.0.0/0
       VpcId:
         Ref: VPC
-  # Bastion:
-  #   Type: AWS::EC2::Instance
-  #   Properties:
-  #     InstanceType: t2.micro
-  #     ImageId: ami-0c59d27e0a499a564
-  #     KeyName: pingdata-keypair
-  #     NetworkInterfaces:
-  #       - AssociatePublicIpAddress: true
-  #         DeviceIndex: "0"
-  #         GroupSet:
-  #           - Ref: BastionSecurityGroup
-  #         SubnetId:
-  #           Ref: VPCSubnetPublicAPSE2A
-  #     Tags:
-  #       - Key: Name
-  #         Value: VPC Bastion
+  Bastion:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0c59d27e0a499a564
+      KeyName:
+        Ref: KeyPairName
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: BastionSecurityGroup
+          SubnetId:
+            Ref: VPCSubnetPublicAPSE2A
+      Tags:
+        - Key: Name
+          Value: VPC Bastion
 
   VPCPrivateSecurityGroup:
     Type: AWS::EC2::SecurityGroup

@@ -16,13 +16,21 @@ To verify the above run:
 Output:
 `aws-cli/1.16.243 Python/3.7.4 Windows/10 botocore/1.12.233`
 
+Make sure that the following profile exists in the file `~/.aws/credentials`
+
+```
+[contactz]
+aws_access_key_id = A...
+aws_secret_access_key = D...
+```
+
 ## Docker
 
 `docker --version`
 Output:
 `Docker version 19.03.8, build afacb8b`
 
-## To Run SAM:
+## SAM:
 
 `sam --version`
 Output:
@@ -31,4 +39,4 @@ Output:
 ## Create an S3 Bucket for SAM
 
 Run:
-`aws s3api create-bucket --bucket sam-contactz --region ap-southeast-2 --create-bucket-configuration LocationConstraint=ap-southeast-2`
+`aws --profile contactz s3api create-bucket --bucket sam-contactz --region ap-southeast-2 --create-bucket-configuration LocationConstraint=ap-southeast-2`

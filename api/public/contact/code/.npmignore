@@ -1,0 +1,8 @@
+samconfig.toml
+template.yml
+yarn.lock
+tests/**/*
+events/*
+dependencies/**/*
+coverage/**/*
+*.zip
