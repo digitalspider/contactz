@@ -5,6 +5,10 @@ Description: >
   SAM Template for VPC Network
 
 Parameters:
+  VPCName:
+    Type: String
+    Description: The Name of the VPC
+    Default: contactz-vpc
 
 Resources:
   VPC:
@@ -16,7 +20,9 @@ Resources:
       InstanceTenancy: default
       Tags:
       - Key: Name
-        Value:  contactz-vpc
+        Value:
+          Ref: VPCName
+
   VPCSubnetPrivateAPSE2A:
     Type: AWS::EC2::Subnet
     Properties:
@@ -309,12 +315,12 @@ Resources:
         FromPort: 443
         ToPort: 443
         CidrIp: 16.16.0.0/20
-      - Description: Bastion Access
-        IpProtocol: tcp
-        FromPort: 22
-        ToPort: 22
-        CidrIp:
-          Fn::Join: ['', [Fn::GetAtt: Bastion.PrivateIp, '/32']]
+      # - Description: Bastion Access
+      #   IpProtocol: tcp
+      #   FromPort: 22
+      #   ToPort: 22
+      #   CidrIp:
+      #     Fn::Join: ['', [Fn::GetAtt: Bastion.PrivateIp, '/32']]
       SecurityGroupEgress:
       - IpProtocol: -1
         CidrIp: 0.0.0.0/0

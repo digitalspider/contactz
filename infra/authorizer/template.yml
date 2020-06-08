@@ -4,24 +4,25 @@ Description: >
   authorizer-lambda
   SAM Template provides an authorizer lambda.
 Parameters:
-  VPCSecret:
+  VPCSecretName:
     Type: String
     Description: The required name of the SecretsManager that has the vpc id
     Default: vpc-secret
-  AuthSecret:
+  AuthSecretName:
     Type: String
     Description: The generated name of the SecretsManager that has the auth lambda ARN
     Default: auth-secret
   JwtSecret:
     Type: String
     Description: The jwt secret required by the auth lambda
+    Default: secret
 
 Resources:
   AuthSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
       Name:
-        Ref: AuthSecret
+        Ref: AuthSecretName
       Description: "Authorizer lambda"
       SecretString:
         Fn::Join: ["", ['{"auth-arn": "', Fn::GetAtt: AuthFunction.Arn, '"}']]
@@ -50,7 +51,7 @@ Resources:
     Properties:
       LayerName: authorizer-dependencies
       Description: All dependencies for authorizer
-      ContentUri: dependencies/
+      ContentUri: code/dependencies/
       CompatibleRuntimes:
         - nodejs12.x
       RetentionPolicy: Delete
