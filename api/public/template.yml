@@ -82,7 +82,7 @@ Resources:
         - Ref: ContactDependenciesLayer
       VpcConfig:
         SecurityGroupIds:
-          - Fn::Join: ['', ['{{resolve:secretsmanager:', 'nab-db-config', ':SecretString:sg}}' ]]
+          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: DbSecretName, ':SecretString:sg}}' ]]
         SubnetIds:
           - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2a}}' ]]
           - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2b}}' ]]
