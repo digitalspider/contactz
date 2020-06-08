@@ -26,7 +26,7 @@ async function getSecret(secretName, isJson = true) {
   } else if ('SecretBinary' in secret) {
     secretString = Buffer.from(secret.SecretBinary, 'base64').toString('ascii');
   } else {
-    throw `The secret '${name}' is malformed.`;
+    throw `The secret '${secretName}' is malformed.`;
   }
   return isJson ? JSON.parse(secretString) : secretString;
 }

@@ -42,7 +42,7 @@ exports.handler = async (event, _context) => {
         result = await dbService.softDelete(userId, id);
         break;
       default:
-        throw new Error(`Invalid request method: ${httpMethod}`);
+        throw new Error(`Invalid request method: ${method}`);
     }
     return utils.sendResponseOk(result, headers);
   } catch (err) {

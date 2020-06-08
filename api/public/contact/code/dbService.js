@@ -1,4 +1,5 @@
 const uuid = require('uuid').v4;
+const pg = require('pg');
 const utils = require('./utils');
 const secretService = require('./secretService');
 const constants = require('./constants');
@@ -23,7 +24,7 @@ function init() {
     }
     const config = {
       user: dbConfig.username,
-      password: dbSecret.password,
+      password: dbConfig.password,
       database: dbConfig.dbname,
       host: dbConfig.host,
       port: dbConfig.port,

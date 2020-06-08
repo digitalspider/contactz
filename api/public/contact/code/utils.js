@@ -22,7 +22,6 @@ class BadRequestError extends Error {
     super(message);
     this.name = 'BadRequestError';
     this.statusCode = Number.isInteger(statusCode) ? statusCode : httpStatus.BAD_REQUEST;
-    level = getErrorLevel(level);
     if (details) {
       this.details = details;
     }
