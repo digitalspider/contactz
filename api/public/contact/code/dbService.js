@@ -1,6 +1,6 @@
 const uuid = require('uuid').v4;
 const pg = require('pg');
-const utils = require('./utils');
+const httpService = require('./httpService');
 const secretService = require('./secretService');
 const constants = require('./constants');
 const httpStatus = constants.HTTP_STATUS;
@@ -56,11 +56,11 @@ async function validate(userId, id) {
   const values = [id];
   const result = await executeSqlQuery(sqlQuery, values);
   if (result && result.rows.length === 0) {
-    throw new utils.NotFoundError(`No entity with id: ${id}`);
+    throw new httpService.NotFoundError(`No entity with id: ${id}`);
   }
   const foundEntity = result.rows[0];
   if (foundEntity.owner !== userId) {
-    throw new utils.BadRequestError(`Permission denied`, httpStatus.FORBIDDEN);
+    throw new httpService.BadRequestError(`Permission denied`, httpStatus.FORBIDDEN);
   }
 }
 
@@ -108,4 +108,4 @@ async function hardDelete(userId, id) {
   return executeSqlQuery(sqlQuery, values);
 }
 
-module.exports = {list, get, create, update, softDelete, hardDelete};
+module.exports = { list, get, create, update, softDelete, hardDelete };

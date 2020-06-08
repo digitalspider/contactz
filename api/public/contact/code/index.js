@@ -1,4 +1,4 @@
-const utils = require('./utils');
+const httpService = require('./httpService');
 const dbService = require('./dbService');
 
 exports.handler = async (event, _context) => {
@@ -18,7 +18,7 @@ exports.handler = async (event, _context) => {
     console.log(`id=${id}`);
     let result;
 
-    switch(method) {
+    switch (method) {
       case 'GET':
         if (!id) {
           const searchTerm = event.pathParameters ? event.pathParameters.q : null;
@@ -45,9 +45,9 @@ exports.handler = async (event, _context) => {
       default:
         throw new Error(`Invalid request method: ${method}`);
     }
-    return utils.sendResponseOk(result, headers);
+    return httpService.sendResponseOk(result, headers);
   } catch (err) {
     console.log(err);
-    return utils.sendResponseError(err, headers);
+    return httpService.sendResponseError(err, headers);
   }
 }
