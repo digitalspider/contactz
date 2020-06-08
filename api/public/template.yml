@@ -148,18 +148,18 @@ Resources:
         - nodejs12.x
       RetentionPolicy: Delete
 
-  ApiMapping:
-    Type: AWS::ApiGatewayV2::ApiMapping
-    DependsOn:
-      - PublicApiStage # Needs the API to be set up, before mapping # https://github.com/awslabs/serverless-application-model/issues/192
-    Properties:
-      ApiId:
-        Ref: PublicApi
-      DomainName:
-        Ref: DomainName
-      Stage:
-        Ref: StageName
-      ApiMappingKey: v1
+  # ApiMapping:
+  #   Type: AWS::ApiGatewayV2::ApiMapping
+  #   DependsOn:
+  #     - PublicApiStage # Needs the API to be set up, before mapping # https://github.com/awslabs/serverless-application-model/issues/192
+  #   Properties:
+  #     ApiId:
+  #       Ref: PublicApi
+  #     DomainName:
+  #       Ref: DomainName
+  #     Stage:
+  #       Ref: StageName
+  #     ApiMappingKey: v1
 
   LambdaRole:
     Type: AWS::IAM::Role
