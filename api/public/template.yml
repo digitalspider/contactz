@@ -76,7 +76,7 @@ Resources:
       Handler: index.handler
       Runtime: nodejs12.x
       Description: CRUD functions for contact endpoints
-      FunctionName: sam-lambda-contact
+      FunctionName: sam-contact-lambda
       Environment:
         Variables:
           DB_SECRET:
