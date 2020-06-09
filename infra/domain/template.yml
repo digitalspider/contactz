@@ -10,7 +10,7 @@ Parameters:
   DomainName:
     Type: String
     Description: The custom domain for the API
-    Default: contactz.com.au
+    Default: api.contactz.com.au
   CertificateArn:
     Type: String
     Description: The ACM certificate ARN
