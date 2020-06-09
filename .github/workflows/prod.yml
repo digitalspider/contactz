@@ -7,31 +7,68 @@ on:
 
 jobs:
   deploy:
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-southeast-2
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@master
       - name: Create S3 Bucket (sam-contactz)
         run: aws s3api head-bucket --bucket sam-contactz --region ap-southeast-2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-southeast-2
+
       - name: sam build (infra/network)
         uses: TractorZoom/sam-cli-action@master
         with:
           sam_command: build
           directory: infra/network
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-southeast-2
       - name: sam deploy (infra/network)
         uses: TractorZoom/sam-cli-action@master
         with:
           sam_command: 'deploy --no-fail-on-empty-changeset'
           directory: infra/network
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ap-southeast-2
+
+      - name: sam build (infra/domain)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: build
+          directory: infra/domain
+      - name: sam deploy (infra/domain)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: 'deploy --no-fail-on-empty-changeset'
+          directory: infra/domain
+
+      - name: sam build (infra/datastore)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: build
+          directory: infra/datastore
+      - name: sam deploy (infra/datastore)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: 'deploy --no-fail-on-empty-changeset'
+          directory: infra/datastore
+
+      - name: sam build (infra/authorizer)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: build
+          directory: infra/authorizer
+      - name: sam deploy (infra/authorizer)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: 'deploy --no-fail-on-empty-changeset'
+          directory: infra/authorizer
+
+      - name: sam build (api/public)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: build
+          directory: api/public
+      - name: sam deploy (api/public)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: 'deploy --no-fail-on-empty-changeset'
+          directory: api/public
