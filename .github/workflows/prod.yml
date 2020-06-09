@@ -18,38 +18,38 @@ jobs:
       - name: Create S3 Bucket (sam-contactz)
         run: aws s3api head-bucket --bucket sam-contactz --region ap-southeast-2
 
-      - name: sam build (infra/network)
-        uses: TractorZoom/sam-cli-action@master
-        with:
-          sam_command: build
-          directory: infra/network
-      - name: sam deploy (infra/network)
-        uses: TractorZoom/sam-cli-action@master
-        with:
-          sam_command: 'deploy --no-fail-on-empty-changeset'
-          directory: infra/network
+      # - name: sam build (infra/network)
+      #   uses: TractorZoom/sam-cli-action@master
+      #   with:
+      #     sam_command: build
+      #     directory: infra/network
+      # - name: sam deploy (infra/network)
+      #   uses: TractorZoom/sam-cli-action@master
+      #   with:
+      #     sam_command: 'deploy --no-fail-on-empty-changeset'
+      #     directory: infra/network
 
-      - name: sam build (infra/domain)
-        uses: TractorZoom/sam-cli-action@master
-        with:
-          sam_command: build
-          directory: infra/domain
-      - name: sam deploy (infra/domain)
-        uses: TractorZoom/sam-cli-action@master
-        with:
-          sam_command: 'deploy --no-fail-on-empty-changeset'
-          directory: infra/domain
+      # - name: sam build (infra/domain)
+      #   uses: TractorZoom/sam-cli-action@master
+      #   with:
+      #     sam_command: build
+      #     directory: infra/domain
+      # - name: sam deploy (infra/domain)
+      #   uses: TractorZoom/sam-cli-action@master
+      #   with:
+      #     sam_command: 'deploy --no-fail-on-empty-changeset'
+      #     directory: infra/domain
 
-      - name: sam build (infra/datastore)
-        uses: TractorZoom/sam-cli-action@master
-        with:
-          sam_command: build
-          directory: infra/datastore
-      - name: sam deploy (infra/datastore)
-        uses: TractorZoom/sam-cli-action@master
-        with:
-          sam_command: 'deploy --no-fail-on-empty-changeset'
-          directory: infra/datastore
+      # - name: sam build (infra/datastore)
+      #   uses: TractorZoom/sam-cli-action@master
+      #   with:
+      #     sam_command: build
+      #     directory: infra/datastore
+      # - name: sam deploy (infra/datastore)
+      #   uses: TractorZoom/sam-cli-action@master
+      #   with:
+      #     sam_command: 'deploy --no-fail-on-empty-changeset'
+      #     directory: infra/datastore
 
       - name: sam build (infra/authorizer)
         uses: TractorZoom/sam-cli-action@master
@@ -61,6 +61,17 @@ jobs:
         with:
           sam_command: 'deploy --no-fail-on-empty-changeset'
           directory: infra/authorizer
+
+      # - name: sam build (api/config)
+      #   uses: TractorZoom/sam-cli-action@master
+      #   with:
+      #     sam_command: build
+      #     directory: api/config
+      # - name: sam deploy (api/config)
+      #   uses: TractorZoom/sam-cli-action@master
+      #   with:
+      #     sam_command: 'deploy --no-fail-on-empty-changeset'
+      #     directory: api/config
 
       - name: sam build (api/public)
         uses: TractorZoom/sam-cli-action@master
