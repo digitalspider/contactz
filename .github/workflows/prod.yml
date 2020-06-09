@@ -20,7 +20,7 @@ jobs:
       - name: sam build (infra/network)
         uses: TractorZoom/sam-cli-action@master
         with:
-          sam_command: "build"
+          sam_command: build
           directory: infra/network
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -29,7 +29,7 @@ jobs:
       - name: sam deploy (infra/network)
         uses: TractorZoom/sam-cli-action@master
         with:
-          sam_command: "deploy"
+          sam_command: 'deploy --no-fail-on-empty-changeset'
           directory: infra/network
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
