@@ -1,0 +1,9 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "config-api"
+s3_bucket = "sam-contactz"
+s3_prefix = "config-api"
+region = "ap-southeast-2"
+capabilities = "CAPABILITY_IAM"

@@ -60,10 +60,10 @@ Resources:
           Name: "AWS::Include"
           Parameters:
             Location: contact.openapi.yml
-      # AccessLogSetting:
-      #   DestinationArn:
-      #     Fn::GetAtt: AccessLogs.Arn
-      #   Format: requestId:$context.requestId, method:$context.httpMethod, xrayId:$context.xrayTraceId, principalId:$context.authorizer.principalId
+      AccessLogSetting:
+        DestinationArn:
+          Fn::GetAtt: AccessLogs.Arn
+        Format: requestId:$context.requestId, method:$context.httpMethod, xrayId:$context.xrayTraceId, principalId:$context.authorizer.principalId
       Tags:
         Name: API Gateway
         Description: API Gateway
