@@ -24,7 +24,7 @@ Parameters:
   StageName:
     Type: String
     Default: prod
-  DomainName:
+  ApiDomainName:
     Type: String
     Description: The api domain name
     Default: api.contactz.com.au
@@ -50,15 +50,7 @@ Resources:
           AuthLambdaRequestAuthorizer:
             FunctionPayloadType: REQUEST
             FunctionArn:
-              Fn::Join:
-                [
-                  "",
-                  [
-                    "{{resolve:secretsmanager:",
-                    Ref: AuthSecretName,
-                    ":SecretString:auth-arn}}",
-                  ],
-                ]
+              Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: AuthSecretName, ':SecretString:auth-arn}}' ]]
             Identity:
               ReauthorizeEvery: 0
               Headers:
@@ -94,43 +86,11 @@ Resources:
         - Ref: ContactDependenciesLayer
       VpcConfig:
         SecurityGroupIds:
-          - Fn::Join:
-              [
-                "",
-                [
-                  "{{resolve:secretsmanager:",
-                  Ref: DbSecretName,
-                  ":SecretString:sg}}",
-                ],
-              ]
+          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: DbSecretName, ':SecretString:sg}}' ]]
         SubnetIds:
-          - Fn::Join:
-              [
-                "",
-                [
-                  "{{resolve:secretsmanager:",
-                  Ref: VPCSecretName,
-                  ":SecretString:subnet-private-apse2a}}",
-                ],
-              ]
-          - Fn::Join:
-              [
-                "",
-                [
-                  "{{resolve:secretsmanager:",
-                  Ref: VPCSecretName,
-                  ":SecretString:subnet-private-apse2b}}",
-                ],
-              ]
-          - Fn::Join:
-              [
-                "",
-                [
-                  "{{resolve:secretsmanager:",
-                  Ref: VPCSecretName,
-                  ":SecretString:subnet-private-apse2c}}",
-                ],
-              ]
+          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2a}}' ]]
+          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2b}}' ]]
+          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2c}}' ]]
       Events:
         ListContacts:
           Type: Api
@@ -188,17 +148,17 @@ Resources:
         - nodejs12.x
       RetentionPolicy: Delete
 
-  # ApiMapping:
-  #   Type: AWS::ApiGatewayV2::ApiMapping
-  #   DependsOn:
-  #     - PublicApiStage # Needs the API to be set up, before mapping # https://github.com/awslabs/serverless-application-model/issues/192
-  #   Properties:
-  #     ApiId:
-  #       Ref: PublicApi
-  #     DomainName:
-  #       Ref: DomainName
-  #     Stage:
-  #       Ref: StageName
+  ApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    DependsOn:
+      - PublicApiStage # Needs the API to be set up, before mapping # https://github.com/awslabs/serverless-application-model/issues/192
+    Properties:
+      ApiId:
+        Ref: PublicApi
+      DomainName:
+        Ref: ApiDomainName
+      Stage:
+        Ref: StageName
   #     ApiMappingKey: v1
 
   LambdaRole:

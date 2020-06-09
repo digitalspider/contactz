@@ -4,7 +4,9 @@ This CloudFormation stack creates the API Domain
 
 The result URL is: https://contactz.com.au
 
-A CertificateARN is required to create this stack
+Parameters:
+* HostedZoneId = required for the Route53 set up
+* CertificateARN = required for the ApiGateway Domain Name configuration
 
 The SAM Resources are:
 
