@@ -17,21 +17,21 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-southeast-2
-      - name: sam build (./infra/network)
+      - name: sam build (infra/network)
         uses: TractorZoom/sam-cli-action@master
         with:
           sam_command: "build"
+          directory: infra/network
         env:
-          INPUT_DIRECTORY: infra/network
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-southeast-2
-      - name: sam deploy (./infra/network)
+      - name: sam deploy (infra/network)
         uses: TractorZoom/sam-cli-action@master
         with:
           sam_command: "deploy"
+          directory: infra/network
         env:
-          INPUT_DIRECTORY: infra/network
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-southeast-2
