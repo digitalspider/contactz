@@ -37,7 +37,7 @@ exports.handler = async function (event, _context, callback) {
 }
 
 const verifyToken = async function (token) {
-  return jwt.verify(token, JWT_SECRET, { algorithm: ['HS256'] });
+  return 'test'; // jwt.verify(token, JWT_SECRET, { algorithm: ['HS256'] });
 };
 
 // Help function to generate an IAM policy
@@ -49,10 +49,10 @@ const generatePolicy = function (principalId, effect, resource) {
 
     if (effect && resource) {
       var policyDocument = {};
-      policyDocument.Version = '2012-10-17'; // default version
+      policyDocument.Version = '2012-10-17';
       policyDocument.Statement = [];
       var statementOne = {};
-      statementOne.Action = 'execute-api:Invoke'; // default action
+      statementOne.Action = 'execute-api:Invoke';
       statementOne.Effect = EFFECTS.find(e => e === effect.toLowerCase()) ? effect : DENY;
       statementOne.Resource = resource;
       policyDocument.Statement[0] = statementOne;
