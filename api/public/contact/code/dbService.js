@@ -89,7 +89,7 @@ async function get(userId, id) {
 
 async function update(userId, id, body) {
   await validate(userId, id);
-  const sqlQuery = `update ${tableName} set name = $3 where created_by = $1 and id = $2`;
+  const sqlQuery = `update ${tableName} set name = $3, updated_at=now() where created_by = $1 and id = $2`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
 }
