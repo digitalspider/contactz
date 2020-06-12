@@ -52,7 +52,7 @@ async function executeSqlQuery(sqlQuery, values) {
 }
 
 async function validate(userId, id) {
-  const sqlQuery = `select id, owner from ${tableName} where id = $1 and (deleted_at is null or deleted_at > now())`;
+  const sqlQuery = `select id, created_by from ${tableName} where id = $1 and (deleted_at is null or deleted_at > now())`;
   const values = [id];
   const result = await executeSqlQuery(sqlQuery, values);
   if (result && result.rows.length === 0) {
@@ -66,7 +66,7 @@ async function validate(userId, id) {
 
 async function list(userId, searchTerm) {
   const searchParam = searchTerm ? `%${searchTerm}%` : '%';
-  const sqlQuery = `select * from ${tableName} where owner = $1 and name like $2 and (deleted_at is null or deleted_at > now())`;
+  const sqlQuery = `select * from ${tableName} where created_by = $1 and name like $2 and (deleted_at is null or deleted_at > now())`;
   const values = [userId, searchParam];
   const results = await executeSqlQuery(sqlQuery, values);
   return results.rows;
@@ -74,14 +74,14 @@ async function list(userId, searchTerm) {
 
 async function create(userId, body) {
   const id = generateId();
-  const sqlQuery = `insert into ${tableName} (owner, id, name) VALUES ($1, $2, $3)`;
+  const sqlQuery = `insert into ${tableName} (created_by, id, name) VALUES ($1, $2, $3)`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
 }
 
 async function get(userId, id) {
   await validate(userId, id);
-  const sqlQuery = `select * from ${tableName} where owner = $1 and id = $2`;
+  const sqlQuery = `select * from ${tableName} where created_by = $1 and id = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
   return results.rows[0];
@@ -89,21 +89,21 @@ async function get(userId, id) {
 
 async function update(userId, id, body) {
   await validate(userId, id);
-  const sqlQuery = `update ${tableName} set name = $3 where owner = $1 and id = $2`;
+  const sqlQuery = `update ${tableName} set name = $3 where created_by = $1 and id = $2`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
 }
 
 async function softDelete(userId, id) {
   await validate(userId, id);
-  const sqlQuery = `update ${tableName} set deleted_at = now() where owner = $1 and id = $2`;
+  const sqlQuery = `update ${tableName} set deleted_at = now() where created_by = $1 and id = $2`;
   const values = [userId, id];
   return executeSqlQuery(sqlQuery, values);
 }
 
 async function hardDelete(userId, id) {
   await validate(userId, id);
-  const sqlQuery = `delete from ${tableName} where owner = $1 and id = $2`;
+  const sqlQuery = `delete from ${tableName} where created_by = $1 and id = $2`;
   const values = [userId, id];
   return executeSqlQuery(sqlQuery, values);
 }
