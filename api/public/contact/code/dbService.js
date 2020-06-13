@@ -61,7 +61,7 @@ async function validate(userId, id) {
     throw new httpService.NotFoundError(`No entity with id: ${id}`);
   }
   const foundEntity = result.rows[0];
-  if (foundEntity.created_at !== userId) {
+  if (foundEntity.created_by !== userId) {
     throw new httpService.BadRequestError(`Permission denied`, httpStatus.FORBIDDEN);
   }
 }
