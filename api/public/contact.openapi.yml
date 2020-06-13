@@ -4,7 +4,11 @@ info:
   title: contact-public-api
   description: Contact Public APIs
 tags:
+  - name: "account"
   - name: "contact"
+  - name: "address"
+  - name: "group"
+  - name: "tag"
 
 # AWS Validators
 x-amazon-apigateway-request-validators:
@@ -127,7 +131,7 @@ paths:
         name: id
         description: The id of the contact
         schema:
-          $ref: "#/components/schemas/contactId"
+          $ref: "#/components/schemas/entityId"
         required: true
     options:
       tags:
@@ -248,6 +252,905 @@ paths:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
 
+  /address:
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "address"
+      operationId: ListAddresses
+      description: |
+        List all address in the database
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/addressList"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    post:
+      tags:
+        - "address"
+      operationId: CreateAddress
+      description: |
+        Creates a new Address in the Database
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/address"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/addressResponse"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /address/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: The id of the address
+        schema:
+          $ref: "#/components/schemas/entityId"
+        required: true
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "address"
+      operationId: GetAddress
+      description: |
+        Get the specified address
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/address"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    put:
+      tags:
+        - "address"
+      operationId: UpdateAddress
+      description: |
+        Update the specified address
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/address"
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    delete:
+      tags:
+        - "address"
+      operationId: DeleteAddress
+      description: |
+        Delete a address
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+
+  /account:
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "account"
+      operationId: ListAccounts
+      description: |
+        List all accounts in the database
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/accountList"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    post:
+      tags:
+        - "account"
+      operationId: CreateAccount
+      description: |
+        Creates a new Account in the Database
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/account"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/accountResponse"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /account/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: The id of the account
+        schema:
+          $ref: "#/components/schemas/entityId"
+        required: true
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "account"
+      operationId: GetAccount
+      description: |
+        Get the specified account
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/account"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    put:
+      tags:
+        - "account"
+      operationId: UpdateAccount
+      description: |
+        Update the specified account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/account"
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    delete:
+      tags:
+        - "account"
+      operationId: DeleteAccount
+      description: |
+        Delete a account
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+
+  /tag:
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "tag"
+      operationId: ListTags
+      description: |
+        List all tags in the database
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/tagList"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    post:
+      tags:
+        - "tag"
+      operationId: CreateTag
+      description: |
+        Creates a new Tag in the Database
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/tag"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/tagResponse"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /tag/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: The id of the tag
+        schema:
+          $ref: "#/components/schemas/entityId"
+        required: true
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "tag"
+      operationId: GetTag
+      description: |
+        Get the specified tag
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/tag"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    put:
+      tags:
+        - "tag"
+      operationId: UpdateTag
+      description: |
+        Update the specified tag
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/tag"
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    delete:
+      tags:
+        - "tag"
+      operationId: DeleteTag
+      description: |
+        Delete a tag
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+
+  /group:
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "group"
+      operationId: ListGroup
+      description: |
+        List all groups in the database
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/groupList"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    post:
+      tags:
+        - "group"
+      operationId: CreateGroup
+      description: |
+        Creates a new Group in the Database
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/group"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/groupResponse"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /group/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: The id of the group
+        schema:
+          $ref: "#/components/schemas/entityId"
+        required: true
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "group"
+      operationId: GetGroup
+      description: |
+        Get the specified group
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/group"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    put:
+      tags:
+        - "group"
+      operationId: UpdateGroup
+      description: |
+        Update the specified group
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/group"
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+    delete:
+      tags:
+        - "group"
+      operationId: DeleteGroup
+      description: |
+        Delete a group
+      responses:
+        200:
+          description: success
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
 
 components:
   securitySchemes:
@@ -265,15 +1168,21 @@ components:
         authorizerUri: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AuthLambdaName}/invocations
         authorizerResultTtlInSeconds: 0
   schemas:
+    entityId:
+      type: string
+      description: The id of the entity
+      pattern: "^[a-zA-Z0-9]{0,64}}$"
+      readOnly: true
+      example: "123"
     contact:
       type: object
+      description: Structure of the contact information
       properties:
         id:
-          $ref: "#/components/schemas/contactId"
+          $ref: "#/components/schemas/entityId"
         external_id:
           type: string
           description: Optional Client provided ID for the given contact. Must be unique.
-          nullable: true
           maxLength: 64
         name:
           type: string
@@ -283,21 +1192,35 @@ components:
         preferred_name:
           type: string
           description: The preferred name of this contact
-          nullable: false
           maxLength: 64
+        email:
+          type: string
+          description: The email of this contact
+          maxLength: 64
+        mobile:
+          type: string
+          description: The mobile of this contact
+          maxLength: 64
+        notes:
+          type: string
+          description: Additional notes for this contact
         address:
-          $ref: "#/components/schemas/contactAddress"
-        date_of_birth:
-          $ref: "#/components/schemas/contactDateOfBirth"
+          $ref: "#/components/schemas/address"
         gender:
-          $ref: "#/components/schemas/contactGender"
+          $ref: "#/components/schemas/genderEnum"
+        date_birth:
+          $ref: "#/components/schemas/dateFormat"
+        date_wedding:
+          $ref: "#/components/schemas/dateFormat"
+        date_death:
+          $ref: "#/components/schemas/dateFormat"
       required:
         - name
     contactResponse:
       type: object
       properties:
         xref:
-          $ref: "#/components/schemas/contactId"
+          $ref: "#/components/schemas/entityId"
     contactList:
       type: object
       properties:
@@ -305,15 +1228,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/contact"
-    contactId:
-      type: string
-      description: The id of the contact
-      pattern: "^[a-zA-Z0-9]{0,64}}$"
-      readOnly: true
-      example: "123"
-    contactAddress:
+    address:
       type: object
-      description: Structure containing the contacts address information
+      description: Structure of the address information
       required:
         - street
         - state
@@ -342,21 +1259,105 @@ components:
           description: The ISO 3166 Alpha-2 country code. Australia is AU
           pattern: ^([A-Z]{2}|[a-z]{2})$
           example: AU
-    contactGender:
+    genderEnum:
       type: string
       description: The contacts gender. Either male, female
       enum:
         - male
         - female
-    contactDateOfBirth:
+    dateFormat:
+      type: string
+      description: A date in YYYY-MM-DD format.
+      pattern: ^\d{4}-[01]\d-[0-3]\d$
+      example: "2020-12-25"
+    addressResponse:
       type: object
-      description: The contacts date of birth structure, consisting of a date field in \'YYYY-MM-DD\' format
       properties:
-        date:
+        xref:
+          $ref: "#/components/schemas/entityId"
+    addressList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/address"
+    account:
+      type: object
+      description: Structure of the account information
+      required:
+        - username
+        - password
+      properties:
+        username:
           type: string
-          description: A date in YYYY-MM-DD format.
-          pattern: ^\d{4}-[01]\d-[0-3]\d$
-          example: "2020-12-25"
+          description: The username of the account
+          nullable: false
+        password:
+          type: string
+          description: The password of the account
+          nullable: false
+        contact_id:
+          type: number
+          description: The id of the associated contact
+        domain:
+          type: string
+          description: The four digit (AU) postcode
+    accountResponse:
+      type: object
+      properties:
+        xref:
+          $ref: "#/components/schemas/entityId"
+    accountList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/account"
+    tag:
+      type: object
+      description: Structure of the tag
+      required:
+        - label
+      properties:
+        label:
+          type: string
+          description: The street address
+    tagResponse:
+      type: object
+      properties:
+        xref:
+          $ref: "#/components/schemas/entityId"
+    tagList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/tag"
+
+    group:
+      type: object
+      description: Structure of the group
+      required:
+        - label
+      properties:
+        label:
+          type: string
+          description: The label of the group
+    groupResponse:
+      type: object
+      properties:
+        xref:
+          $ref: "#/components/schemas/entityId"
+    groupList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/group"
 
     apiError:
       type: object

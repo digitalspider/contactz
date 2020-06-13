@@ -50,7 +50,7 @@ Resources:
           AuthLambdaRequestAuthorizer:
             FunctionPayloadType: REQUEST
             FunctionArn:
-              Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: AuthSecretName, ':SecretString:auth-arn}}' ]]
+              Fn::Sub: "{{resolve:secretsmanager:${AuthSecretName}:SecretString:auth-arn}}"
             Identity:
               ReauthorizeEvery: 0
               Headers:
@@ -86,11 +86,11 @@ Resources:
         - Ref: ContactDependenciesLayer
       VpcConfig:
         SecurityGroupIds:
-          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: DbSecretName, ':SecretString:sg}}' ]]
+          - Fn::Sub: "{{resolve:secretsmanager:${DbSecretName}:SecretString:sg}}"
         SubnetIds:
-          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2a}}' ]]
-          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2b}}' ]]
-          - Fn::Join: ['', ['{{resolve:secretsmanager:', Ref: VPCSecretName, ':SecretString:subnet-private-apse2c}}' ]]
+          - Fn::Sub: "{{resolve:secretsmanager:${VPCSecretName}:SecretString:subnet-private-apse2a}}"
+          - Fn::Sub: "{{resolve:secretsmanager:${VPCSecretName}:SecretString:subnet-private-apse2b}}"
+          - Fn::Sub: "{{resolve:secretsmanager:${VPCSecretName}:SecretString:subnet-private-apse2c}}"
       Events:
         ListContacts:
           Type: Api
