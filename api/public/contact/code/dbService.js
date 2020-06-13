@@ -12,13 +12,13 @@ function generateId() {
   return `${uuid().replace(/-/g, '')}`;
 }
 
-function init() {
+async function init() {
   if (!dbPool) {
     const DB_SECRET = process.env.DB_SECRET;
     if (!DB_SECRET) {
       throw new Error('Application has not been initialized. Environment variable DB_SECRET is missing');
     }
-    const dbConfig = secretService.getSecret(DB_SECRET);
+    const dbConfig = await secretService.getSecret(DB_SECRET);
     if (!dbConfig) {
       throw new Error(`Application has not been initialized. SecretManager variable is missing: ${DB_SECRET}`);
     }
@@ -28,7 +28,9 @@ function init() {
       database: dbConfig.dbname,
       host: dbConfig.host,
       port: dbConfig.port,
-      max: 10
+      max: 10,
+      idleTimeoutMillis: 5000,
+      connectionTimeoutMillis: 30000,
     };
     dbPool = new pg.Pool(config);
   }
@@ -38,7 +40,7 @@ function init() {
 async function executeSqlQuery(sqlQuery, values) {
   let client = null;
   try {
-    const dbPool = init();
+    const dbPool = await init();
     if (!dbPool) {
       throw new Error(`Database pool has not been configured correctly!`);
     }
@@ -59,7 +61,7 @@ async function validate(userId, id) {
     throw new httpService.NotFoundError(`No entity with id: ${id}`);
   }
   const foundEntity = result.rows[0];
-  if (foundEntity.owner !== userId) {
+  if (foundEntity.created_at !== userId) {
     throw new httpService.BadRequestError(`Permission denied`, httpStatus.FORBIDDEN);
   }
 }
