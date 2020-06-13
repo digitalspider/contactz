@@ -67,7 +67,7 @@ async function validate(tableName, userId, id) {
 
 async function list(tableName, userId, searchTerm) {
   const searchParam = searchTerm ? `%${searchTerm}%` : '%';
-  const searchColumn = ['tag', 'group'].includes(tableName) ? 'label' : 'name';
+  const searchColumn = ['tag', 'groups'].includes(tableName) ? 'label' : 'name';
   const sqlQuery = `select * from ${tableName} where created_by = $1 and ${searchColumn} like $2 and (deleted_at is null or deleted_at > now())`;
   const values = [userId, searchParam];
   const results = await executeSqlQuery(sqlQuery, values);
@@ -76,7 +76,7 @@ async function list(tableName, userId, searchTerm) {
 
 async function create(tableName, userId, body) {
   const id = generateId();
-  const searchColumn = ['tag', 'group'].includes(tableName) ? 'label' : 'name';
+  const searchColumn = ['tag', 'groups'].includes(tableName) ? 'label' : 'name';
   const sqlQuery = `insert into ${tableName} (created_by, id, ${searchColumn}) VALUES ($1, $2, $3)`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
@@ -92,7 +92,7 @@ async function get(tableName, userId, id) {
 
 async function update(tableName, userId, id, body) {
   await validate(tableName, userId, id);
-  const searchColumn = ['tag', 'group'].includes(tableName) ? 'label' : 'name';
+  const searchColumn = ['tag', 'groups'].includes(tableName) ? 'label' : 'name';
   const sqlQuery = `update ${tableName} set ${searchColumn} = $3, updated_at=now() where created_by = $1 and id = $2`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
