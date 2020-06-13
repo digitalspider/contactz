@@ -58,6 +58,9 @@ function getSearchColumn(tableName) {
 function getCreatedByColumn(tableName) {
   return ['account'].includes(tableName) ? 'id' : 'created_by';
 }
+function getUidColumn(tableName) {
+  return ['tag', 'groups'].includes(tableName) ? 'name' : 'uuid';
+}
 
 async function validate(tableName, userId, id) {
   const createdByClause = ['account'].includes(tableName) ? '' : ', created_by';
@@ -95,7 +98,8 @@ async function create(tableName, userId, body) {
 async function get(tableName, userId, id) {
   await validate(tableName, userId, id);
   const createdByColumn = getCreatedByColumn(tableName);
-  const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and id = $2`;
+  const uidColumn = getUidColumn(tableName);
+  const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
   return results.rows.map((row) => { delete row.id; return row })[0];
@@ -105,7 +109,8 @@ async function update(tableName, userId, id, body) {
   await validate(tableName, userId, id);
   const searchColumn = getSearchColumn(tableName);
   const createdByColumn = getCreatedByColumn(tableName);
-  const sqlQuery = `update ${tableName} set ${searchColumn} = $3, updated_at=now() where ${createdByColumn} = $1 and id = $2`;
+  const uidColumn = getUidColumn(tableName);
+  const sqlQuery = `update ${tableName} set ${searchColumn} = $3, updated_at=now() where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
 }
@@ -113,7 +118,8 @@ async function update(tableName, userId, id, body) {
 async function softDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
   const createdByColumn = getCreatedByColumn(tableName);
-  const sqlQuery = `update ${tableName} set deleted_at = now() where ${createdByColumn} = $1 and id = $2`;
+  const uidColumn = getUidColumn(tableName);
+  const sqlQuery = `update ${tableName} set deleted_at = now() where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id];
   return executeSqlQuery(sqlQuery, values);
 }
@@ -121,7 +127,8 @@ async function softDelete(tableName, userId, id) {
 async function hardDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
   const createdByColumn = getCreatedByColumn(tableName);
-  const sqlQuery = `delete from ${tableName} where ${createdByColumn} = $1 and id = $2`;
+  const uidColumn = getUidColumn(tableName);
+  const sqlQuery = `delete from ${tableName} where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id];
   return executeSqlQuery(sqlQuery, values);
 }

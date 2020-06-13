@@ -1171,7 +1171,7 @@ components:
     entityId:
       type: string
       description: The id of the entity
-      pattern: "^[a-zA-Z0-9]{0,64}}$"
+      pattern: "^[a-zA-Z0-9|-]{0,64}}$"
       readOnly: true
       example: "123"
     contact:
