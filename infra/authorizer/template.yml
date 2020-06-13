@@ -51,10 +51,10 @@ Resources:
     Properties:
       LayerName: authorizer-dependencies
       Description: All dependencies for authorizer
-      ContentUri: code/dependencies/
+      ContentUri: dependencies/
       CompatibleRuntimes:
         - nodejs12.x
-      RetentionPolicy: Delete
+      RetentionPolicy: Retain
 
   LambdaRole:
     Type: AWS::IAM::Role

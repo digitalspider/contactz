@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
 const AWSXRay = require('aws-xray-sdk');
-const constants = require('../constants');
+const constants = require('./constants');
 const {
   AWS_REGION_APSE2,
   SECRET_MANAGER_URL,

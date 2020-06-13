@@ -143,10 +143,10 @@ Resources:
     Properties:
       LayerName: contact-dependencies
       Description: All dependencies for contact lambda
-      ContentUri: contact/code/dependencies/
+      ContentUri: contact/dependencies/
       CompatibleRuntimes:
         - nodejs12.x
-      RetentionPolicy: Delete
+      RetentionPolicy: Retain
 
   ApiMapping:
     Type: AWS::ApiGatewayV2::ApiMapping
