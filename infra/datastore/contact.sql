@@ -57,7 +57,7 @@ create table contact (
 create table groups (
   id serial primary key,
   created_by bigint not null REFERENCES account(id),
-  label varchar(64) not null,
+  name varchar(64) not null,
   created_at timestamp not null default now(),
   updated_at timestamp,
   deleted_at timestamp,
@@ -67,7 +67,7 @@ create table groups (
 create table tag (
   id serial primary key,
   created_by bigint not null REFERENCES account(id),
-  label varchar(64) not null,
+  name varchar(64) not null,
   created_at timestamp not null default now(),
   updated_at timestamp,
   deleted_at timestamp,
@@ -79,7 +79,7 @@ create table address (
   uuid uuid not null unique DEFAULT uuid_generate_v4(),
   created_by bigint not null REFERENCES account (id),
   contact_id bigint not null REFERENCES contact (id),
-  label varchar(256),
+  name varchar(256),
   street varchar(256) not null,
   suburb varchar(256),
   postcode numeric(6,0) not null,

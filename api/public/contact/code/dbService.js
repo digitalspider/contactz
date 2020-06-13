@@ -52,22 +52,28 @@ async function executeSqlQuery(sqlQuery, values) {
   }
 }
 
+function getSearchColumn(tableName) {
+  return ['account'].includes(tableName) ? 'username' : 'name';
+}
+
 async function validate(tableName, userId, id) {
-  const sqlQuery = `select id, created_by from ${tableName} where id = $1 and (deleted_at is null or deleted_at > now())`;
+  const createdByClause = ['account'].includes(tableName) ? '' : ', created_by';
+  const sqlQuery = `select id ${createdByClause} from ${tableName} where id = $1 and (deleted_at is null or deleted_at > now())`;
   const values = [id];
   const result = await executeSqlQuery(sqlQuery, values);
   if (result && result.rows.length === 0) {
     throw new httpService.NotFoundError(`No entity with id: ${id}`);
   }
   const foundEntity = result.rows[0];
-  if (foundEntity.created_by !== userId) {
+  const entityId = createdByClause ? foundEntity.id : foundEntity.createdByClause;
+  if (entityId !== userId) {
     throw new httpService.BadRequestError(`Permission denied`, httpStatus.FORBIDDEN);
   }
 }
 
 async function list(tableName, userId, searchTerm) {
   const searchParam = searchTerm ? `%${searchTerm}%` : '%';
-  const searchColumn = ['tag', 'groups'].includes(tableName) ? 'label' : 'name';
+  const searchColumn = getSearchColumn(tableName);
   const sqlQuery = `select * from ${tableName} where created_by = $1 and ${searchColumn} like $2 and (deleted_at is null or deleted_at > now())`;
   const values = [userId, searchParam];
   const results = await executeSqlQuery(sqlQuery, values);
@@ -76,7 +82,7 @@ async function list(tableName, userId, searchTerm) {
 
 async function create(tableName, userId, body) {
   const id = generateId();
-  const searchColumn = ['tag', 'groups'].includes(tableName) ? 'label' : 'name';
+  const searchColumn = getSearchColumn(tableName);
   const sqlQuery = `insert into ${tableName} (created_by, id, ${searchColumn}) VALUES ($1, $2, $3)`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
@@ -92,7 +98,7 @@ async function get(tableName, userId, id) {
 
 async function update(tableName, userId, id, body) {
   await validate(tableName, userId, id);
-  const searchColumn = ['tag', 'groups'].includes(tableName) ? 'label' : 'name';
+  const searchColumn = getSearchColumn(tableName);
   const sqlQuery = `update ${tableName} set ${searchColumn} = $3, updated_at=now() where created_by = $1 and id = $2`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
