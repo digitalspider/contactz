@@ -54,7 +54,7 @@ Resources:
       ContentUri: dependencies/
       CompatibleRuntimes:
         - nodejs12.x
-      RetentionPolicy: Retain
+      RetentionPolicy: Delete
 
   LambdaRole:
     Type: AWS::IAM::Role

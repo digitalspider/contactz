@@ -146,7 +146,7 @@ Resources:
       ContentUri: contact/dependencies/
       CompatibleRuntimes:
         - nodejs12.x
-      RetentionPolicy: Retain
+      RetentionPolicy: Delete
 
   ApiMapping:
     Type: AWS::ApiGatewayV2::ApiMapping
