@@ -16,14 +16,15 @@ exports.handler = async (event, _context) => {
     const method = event.httpMethod;
     const id = event.pathParameters ? event.pathParameters.id : null;
     console.log(`id=${id}`);
-    const tableName = event.path ? event.path.split('/')[1] : null;
-    console.log(`tableName=${tableName}`);
-    if (!tableName) {
+    const pathContext = event.path ? event.path.split('/')[1] : null;
+    console.log(`pathContext=${pathContext}`);
+    if (!pathContext) {
       return httpService.sendResponseOk({ intro: 'welcome' }, headers);
     }
-    if (!['contact', 'account', 'address', 'tag', 'groups'].includes(tableName)) {
+    if (!['contact', 'account', 'address', 'tag', 'group'].includes(pathContext)) {
       throw new Error(`Invalid request. Path is invalid. path=${event.path}`);
     }
+    const tableName = pathContext === 'group' ? 'groups' : pathContext;
     let result;
 
     switch (method) {
