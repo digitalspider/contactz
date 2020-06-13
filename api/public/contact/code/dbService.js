@@ -55,6 +55,9 @@ async function executeSqlQuery(sqlQuery, values) {
 function getSearchColumn(tableName) {
   return ['account'].includes(tableName) ? 'username' : 'name';
 }
+function getCreatedByColumn(tableName) {
+  return ['account'].includes(tableName) ? 'id' : 'created_by';
+}
 
 async function validate(tableName, userId, id) {
   const createdByClause = ['account'].includes(tableName) ? '' : ', created_by';
@@ -65,7 +68,7 @@ async function validate(tableName, userId, id) {
     throw new httpService.NotFoundError(`No entity with id: ${id}`);
   }
   const foundEntity = result.rows[0];
-  const entityId = createdByClause ? foundEntity.id : foundEntity.createdByClause;
+  const entityId = createdByClause ? foundEntity.created_by : foundEntity.id;
   if (entityId !== userId) {
     throw new httpService.BadRequestError(`Permission denied`, httpStatus.FORBIDDEN);
   }
@@ -74,10 +77,11 @@ async function validate(tableName, userId, id) {
 async function list(tableName, userId, searchTerm) {
   const searchParam = searchTerm ? `%${searchTerm}%` : '%';
   const searchColumn = getSearchColumn(tableName);
-  const sqlQuery = `select * from ${tableName} where created_by = $1 and ${searchColumn} like $2 and (deleted_at is null or deleted_at > now())`;
+  const createdByColumn = getCreatedByColumn(tableName);
+  const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and (deleted_at is null or deleted_at > now())`;
   const values = [userId, searchParam];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows.map((row) => delete row.id);
+  return results.rows.map((row) => { delete row.id; return row });
 }
 
 async function create(tableName, userId, body) {
@@ -90,30 +94,34 @@ async function create(tableName, userId, body) {
 
 async function get(tableName, userId, id) {
   await validate(tableName, userId, id);
-  const sqlQuery = `select * from ${tableName} where created_by = $1 and id = $2`;
+  const createdByColumn = getCreatedByColumn(tableName);
+  const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and id = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows.map((row) => delete row.id)[0];
+  return results.rows.map((row) => { delete row.id; return row })[0];
 }
 
 async function update(tableName, userId, id, body) {
   await validate(tableName, userId, id);
   const searchColumn = getSearchColumn(tableName);
-  const sqlQuery = `update ${tableName} set ${searchColumn} = $3, updated_at=now() where created_by = $1 and id = $2`;
+  const createdByColumn = getCreatedByColumn(tableName);
+  const sqlQuery = `update ${tableName} set ${searchColumn} = $3, updated_at=now() where ${createdByColumn} = $1 and id = $2`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
 }
 
 async function softDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
-  const sqlQuery = `update ${tableName} set deleted_at = now() where created_by = $1 and id = $2`;
+  const createdByColumn = getCreatedByColumn(tableName);
+  const sqlQuery = `update ${tableName} set deleted_at = now() where ${createdByColumn} = $1 and id = $2`;
   const values = [userId, id];
   return executeSqlQuery(sqlQuery, values);
 }
 
 async function hardDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
-  const sqlQuery = `delete from ${tableName} where created_by = $1 and id = $2`;
+  const createdByColumn = getCreatedByColumn(tableName);
+  const sqlQuery = `delete from ${tableName} where ${createdByColumn} = $1 and id = $2`;
   const values = [userId, id];
   return executeSqlQuery(sqlQuery, values);
 }

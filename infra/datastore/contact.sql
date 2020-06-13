@@ -2,12 +2,13 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 alter table contact drop constraint if exists fk_contact_address;
 drop table if exists address;
-drop table if exists custom_groups;
 alter table account drop constraint if exists fk_account_profile;
+drop table if exists tag;
+drop table if exists groups;
 drop table if exists contact;
 drop table if exists account;
 drop type if exists relation;
-drop type if exists groups;
+drop type if exists gender;
 
 CREATE TYPE relation AS ENUM ('parent', 'child', 'spouse', 'adpotee', 'closefriend');
 CREATE TYPE gender AS ENUM ('male', 'female');
@@ -57,7 +58,7 @@ create table groups (
   created_at timestamp not null default now(),
   updated_at timestamp,
   deleted_at timestamp,
-  unique (created_by,label)
+  unique (created_by,name)
 );
 
 create table tag (
@@ -67,7 +68,7 @@ create table tag (
   created_at timestamp not null default now(),
   updated_at timestamp,
   deleted_at timestamp,
-  unique (created_by,label)
+  unique (created_by,name)
 );
 
 create table address (
@@ -91,14 +92,14 @@ alter table account add constraint fk_account_profile foreign key (contact_id) R
 alter table contact add constraint fk_contact_address foreign key (address_id) REFERENCES address(id) ON DELETE CASCADE;
 
 insert into account (username, password) VALUES ('admin',md5('admin'));
-insert into groups (created_by, label) VALUES (1,'family');
-insert into groups (created_by, label) VALUES (1,'friends');
-insert into groups (created_by, label) VALUES (1,'work');
+insert into groups (created_by, name) VALUES (1,'family');
+insert into groups (created_by, name) VALUES (1,'friends');
+insert into groups (created_by, name) VALUES (1,'work');
 
 insert into contact (created_by, name) VALUES (1,'first contact');
 update account set contact_id=1 where username='admin';
 
-insert into groups (created_by, label) VALUES (1, 'club');
+insert into groups (created_by, name) VALUES (1, 'club');
 insert into contact (created_by, name, groups, relation_data, gender) VALUES (1,'second contact', '{1, 4}','[{"rid":"parent", "cid": "1"}]', 'female');
 
 insert into address (created_by, contact_id, street, postcode) VALUES (1,1,'street2',2000);
