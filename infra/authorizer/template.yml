@@ -50,8 +50,8 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       LayerName: authorizer-dependencies
-      Description: All dependencies for authorizer
-      ContentUri: dependencies/
+      Description: All dependencies for authorizer lambda
+      ContentUri: ./dependencies/
       CompatibleRuntimes:
         - nodejs12.x
       RetentionPolicy: Delete
