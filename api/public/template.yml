@@ -71,7 +71,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Role:
-        Fn::GetAtt: LambdaRole.Arn
+        Fn::GetAtt: ContactLambdaRole.Arn
       CodeUri: contact/code
       Handler: index.handler
       Runtime: nodejs12.x
@@ -161,7 +161,7 @@ Resources:
         Ref: StageName
   #     ApiMappingKey: v1
 
-  LambdaRole:
+  ContactLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       Description: Allows a lambda to access the KMS key to decrypt DB config data
