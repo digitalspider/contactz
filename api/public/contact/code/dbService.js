@@ -77,7 +77,7 @@ async function list(tableName, userId, searchTerm) {
   const sqlQuery = `select * from ${tableName} where created_by = $1 and ${searchColumn} like $2 and (deleted_at is null or deleted_at > now())`;
   const values = [userId, searchParam];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows;
+  return results.rows.map((row) => delete row.id);
 }
 
 async function create(tableName, userId, body) {
@@ -93,7 +93,7 @@ async function get(tableName, userId, id) {
   const sqlQuery = `select * from ${tableName} where created_by = $1 and id = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows[0];
+  return results.rows.map((row) => delete row.id)[0];
 }
 
 async function update(tableName, userId, id, body) {
