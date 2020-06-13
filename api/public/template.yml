@@ -92,10 +92,10 @@ Resources:
           - Fn::Sub: "{{resolve:secretsmanager:${VPCSecretName}:SecretString:subnet-private-apse2b}}"
           - Fn::Sub: "{{resolve:secretsmanager:${VPCSecretName}:SecretString:subnet-private-apse2c}}"
       Events:
-        ListContacts:
+        ListContact:
           Type: Api
           Properties:
-            Path: /contacts
+            Path: /contact
             Method: get
             RestApiId:
               Ref: PublicApi
@@ -132,6 +132,186 @@ Resources:
           Type: Api
           Properties:
             Path: /contact/{id}
+            Method: delete
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        ListAccount:
+          Type: Api
+          Properties:
+            Path: /account
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        GetAccount:
+          Type: Api
+          Properties:
+            Path: /account/{id}
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        CreateAccount:
+          Type: Api
+          Properties:
+            Path: /account
+            Method: post
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        UpdateAccount:
+          Type: Api
+          Properties:
+            Path: /account/{id}
+            Method: put
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        DeleteAccount:
+          Type: Api
+          Properties:
+            Path: /account/{id}
+            Method: delete
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        ListAddress:
+          Type: Api
+          Properties:
+            Path: /address
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        GetAddress:
+          Type: Api
+          Properties:
+            Path: /address/{id}
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        CreateAddress:
+          Type: Api
+          Properties:
+            Path: /address
+            Method: post
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        UpdateAddress:
+          Type: Api
+          Properties:
+            Path: /address/{id}
+            Method: put
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        DeleteAddress:
+          Type: Api
+          Properties:
+            Path: /address/{id}
+            Method: delete
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        ListTag:
+          Type: Api
+          Properties:
+            Path: /tag
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        GetTag:
+          Type: Api
+          Properties:
+            Path: /tag/{id}
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        CreateTag:
+          Type: Api
+          Properties:
+            Path: /tag
+            Method: post
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        UpdateTag:
+          Type: Api
+          Properties:
+            Path: /tag/{id}
+            Method: put
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        DeleteTag:
+          Type: Api
+          Properties:
+            Path: /tag/{id}
+            Method: delete
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        ListGroup:
+          Type: Api
+          Properties:
+            Path: /group
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        GetGroup:
+          Type: Api
+          Properties:
+            Path: /group/{id}
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        CreateGroup:
+          Type: Api
+          Properties:
+            Path: /group
+            Method: post
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        UpdateGroup:
+          Type: Api
+          Properties:
+            Path: /group/{id}
+            Method: put
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        DeleteGroup:
+          Type: Api
+          Properties:
+            Path: /group/{id}
             Method: delete
             RestApiId:
               Ref: PublicApi
