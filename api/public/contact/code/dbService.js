@@ -64,7 +64,8 @@ function getUidColumn(tableName) {
 
 async function validate(tableName, userId, id) {
   const createdByClause = ['account'].includes(tableName) ? '' : ', created_by';
-  const sqlQuery = `select id ${createdByClause} from ${tableName} where id = $1 and (deleted_at is null or deleted_at > now())`;
+  const uidColumn = getUidColumn(tableName);
+  const sqlQuery = `select id ${createdByClause} from ${tableName} where ${uidColumn} = $1 and (deleted_at is null or deleted_at > now())`;
   const values = [id];
   const result = await executeSqlQuery(sqlQuery, values);
   if (result && result.rows.length === 0) {
