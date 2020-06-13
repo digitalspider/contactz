@@ -43,18 +43,6 @@ Resources:
         Variables:
           JWT_SECRET:
             Ref: JwtSecret
-      Layers:
-        - Ref: AuthDependenciesLayer
-
-  AuthDependenciesLayer:
-    Type: AWS::Serverless::LayerVersion
-    Properties:
-      LayerName: authorizer-dependencies
-      Description: All dependencies for authorizer lambda
-      ContentUri: ./dependencies/
-      CompatibleRuntimes:
-        - nodejs12.x
-      RetentionPolicy: Delete
 
   LambdaRole:
     Type: AWS::IAM::Role
