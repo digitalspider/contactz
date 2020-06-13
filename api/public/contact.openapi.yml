@@ -549,7 +549,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/account"
+              $ref: "#/components/schemas/accountCreate"
       responses:
         200:
           description: success
@@ -1214,6 +1214,16 @@ components:
           $ref: "#/components/schemas/dateFormat"
         date_death:
           $ref: "#/components/schemas/dateFormat"
+        tags:
+          type: array
+          items:
+            type: number
+            description: the IDs of the tags
+        groups:
+          type: array
+          items:
+            type: number
+            description: the IDs of the groups
       required:
         - name
     contactResponse:
@@ -1293,16 +1303,24 @@ components:
           type: string
           description: The username of the account
           nullable: false
+        contact_id:
+          type: number
+          description: The id of the associated contact
+    accountCreate:
+      type: object
+      description: Information required to create a new account
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: The username of the account
+          nullable: false
         password:
           type: string
           description: The password of the account
           nullable: false
-        contact_id:
-          type: number
-          description: The id of the associated contact
-        domain:
-          type: string
-          description: The four digit (AU) postcode
     accountResponse:
       type: object
       properties:
