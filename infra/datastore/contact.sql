@@ -32,21 +32,17 @@ create table contact (
   external_id varchar(64),
   name varchar(256) not null,
   preferred_name varchar(256),
-  name_data jsonb,
   email varchar(256),
-  email_data jsonb,
   mobile varchar(16),
-  phone_data jsonb,
   date_birth date,
   date_wedding date,
   date_death date,
-  date_data jsonb,
   address_id bigint,
   gender gender,
   notes text,
   groups int[],
   relation_data jsonb,
-  link_data jsonb,
+  other_data jsonb,
   tags int[],
   sort_order int not null default 99,
   created_at timestamp not null default now(),
@@ -103,13 +99,13 @@ insert into contact (created_by, name) VALUES (1,'first contact');
 update account set contact_id=1 where username='admin';
 
 insert into groups (created_by, label) VALUES (1, 'club');
-insert into contact (created_by, name, groups, relations, gender) VALUES (1,'second contact', '{1, 4}','[{"rid":"parent", "cid": "1"}]', 'female');
+insert into contact (created_by, name, groups, relation_data, gender) VALUES (1,'second contact', '{1, 4}','[{"rid":"parent", "cid": "1"}]', 'female');
 
 insert into address (created_by, contact_id, street, postcode) VALUES (1,1,'street2',2000);
 insert into address (created_by, contact_id, street, postcode) VALUES (1,1,'street3',3000);
 insert into address (created_by, contact_id, street, postcode) VALUES (1,2,'street4',4000);
 insert into address (created_by, contact_id, street, postcode) VALUES (1,2,'street5',5000);
 
-select c.id, c.name, c.gender, c.groups, c.relations from contact c, account a where c.created_by=a.id and a.id=1 order by sort_order,id;
+select c.id, c.name, c.gender, c.groups, c.relation_data from contact c, account a where c.created_by=a.id and a.id=1 order by sort_order,id;
 select c.id, c.name, a.street, a.postcode from contact c, address a where a.contact_id=c.id order by c.sort_order,id;
 select id,name,groups from contact where '4' = ANY(groups);
