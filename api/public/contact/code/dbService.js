@@ -6,6 +6,11 @@ const httpStatus = constants.HTTP_STATUS;
 
 const TABLE = {
   USERS: 'users',
+  GROUPS: 'groups',
+  TAG: 'tag',
+  CONTACT: 'contact',
+  ADDRESS: 'address',
+  ACCOUNT: 'account',
 };
 
 const COLUMN = {
@@ -71,7 +76,7 @@ function getCreatedByColumn(tableName) {
   return [TABLE.USERS].includes(tableName) ? COLUMN.ID : COLUMN.CREATED_BY;
 }
 function getUidColumn(tableName) {
-  return ['tag', 'groups'].includes(tableName) ? COLUMN.NAME : COLUMN.UUID;
+  return [TABLE.TAG, TABLE.GROUPS].includes(tableName) ? COLUMN.NAME : COLUMN.UUID;
 }
 
 async function validate(tableName, userId, id) {
