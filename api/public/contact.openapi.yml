@@ -613,7 +613,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/accountCreate"
+              $ref: "#/components/schemas/account"
       responses:
         200:
           description: success

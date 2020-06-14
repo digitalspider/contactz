@@ -62,10 +62,8 @@ Resources:
                 Effect: "Allow",
                 Principal: "*",
                 Action: "execute-api:Invoke",
-                Resource: "execute-api:/prod/POST/user/register",
-                "execute-api:/prod/POST/user/login",
-                "execute-api:/prod/POST/user/forgot",
-                "execute-api:/prod/POST/user/reset",
+                Resource: "execute-api:/prod/POST/user/register,
+                  execute-api:/prod/POST/user/login",
               },
             ]
         # IpRangeBlacklist:
