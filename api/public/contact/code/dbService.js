@@ -13,6 +13,7 @@ const COLUMN = {
   UUID: 'uuid',
   NAME: 'name',
   USERNAME: 'username',
+  PASSWORD: 'password',
   CREATED_BY: 'created_by',
   CREATED_AT: 'created_at',
   UPDATED_AT: 'updated_at',
