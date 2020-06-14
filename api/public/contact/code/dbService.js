@@ -74,7 +74,7 @@ function getUidColumn(tableName) {
 }
 
 async function validate(tableName, userId, id) {
-  const createdByClause = [TABLE_USERS].includes(tableName) ? '' : `, ${COLUMN.CREATED_BY}`;
+  const createdByClause = [TABLE.USERS].includes(tableName) ? '' : `, ${COLUMN.CREATED_BY}`;
   const uidColumn = getUidColumn(tableName);
   const sqlQuery = `select id ${createdByClause} from ${tableName} where ${uidColumn} = $1 and ${DELETED_AT_CLAUSE}`;
   const values = [id];
