@@ -12,12 +12,17 @@ const client = AWSXRay.captureAWSClient(new AWS.SecretsManager({
   apiVersion: 'latest'
 }));
 
+const cache = {};
+
 /**
  * Retrieve data from the SecretsManager.
  * @param {string} secretName the name of the secret
  * @param {boolean} isJson if true do a JSON.parse() on the results. Default=true
  */
 async function getSecret(secretName, isJson = true) {
+  if (cache[secretName]) {
+    return cache[secretName];
+  }
   const secret = await client.getSecretValue({ SecretId: secretName }).promise();
   let secretString;
   // Decode based on the secret type
@@ -28,7 +33,9 @@ async function getSecret(secretName, isJson = true) {
   } else {
     throw `The secret '${secretName}' is malformed.`;
   }
-  return isJson ? JSON.parse(secretString) : secretString;
+  const result = isJson ? JSON.parse(secretString) : secretString;
+  cache[secretName] = result;
+  return result;
 }
 
 module.exports = { getSecret };
