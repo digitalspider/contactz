@@ -144,4 +144,4 @@ async function hardDelete(tableName, userId, id) {
   return executeSqlQuery(sqlQuery, values);
 }
 
-module.exports = { list, get, create, update, softDelete, hardDelete, TABLE, COLUMN };
+module.exports = { list, get, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
