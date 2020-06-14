@@ -55,6 +55,21 @@ Resources:
               ReauthorizeEvery: 0
               Headers:
                 - Authorization
+        ResourcePolicy:
+          CustomStatements:
+            [
+              {
+                Effect: "Allow",
+                Principal: "*",
+                Action: "execute-api:Invoke",
+                Resource: "execute-api:/prod/POST/user/register",
+                "execute-api:/prod/POST/user/login",
+                "execute-api:/prod/POST/user/forgot",
+                "execute-api:/prod/POST/user/reset",
+              },
+            ]
+        # IpRangeBlacklist:
+        #   - "10.20.30.40"
       DefinitionBody:
         Fn::Transform:
           Name: "AWS::Include"
@@ -92,6 +107,24 @@ Resources:
           - Fn::Sub: "{{resolve:secretsmanager:${VPCSecretName}:SecretString:subnet-private-apse2b}}"
           - Fn::Sub: "{{resolve:secretsmanager:${VPCSecretName}:SecretString:subnet-private-apse2c}}"
       Events:
+        UserRegister:
+          Type: Api
+          Properties:
+            Path: /user/register
+            Method: post
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        UserLogin:
+          Type: Api
+          Properties:
+            Path: /user/login
+            Method: post
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
         ListContact:
           Type: Api
           Properties:

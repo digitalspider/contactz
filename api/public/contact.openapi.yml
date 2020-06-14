@@ -4,6 +4,7 @@ info:
   title: contact-public-api
   description: Contact Public APIs
 tags:
+  - name: "user"
   - name: "account"
   - name: "contact"
   - name: "address"
@@ -27,6 +28,69 @@ servers:
 security:
   - BearerAuth: []
 paths:
+  /user/register:
+    post:
+      tags:
+        - "user"
+      operationId: RegisterUser
+      description: |
+        Register a new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/userLogin"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userResponse"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /user/login:
+    post:
+      tags:
+        - "user"
+      operationId: LoginUser
+      description: |
+        Login a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/userLogin"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userResponse"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+
   /contact:
     options:
       tags:
@@ -1174,6 +1238,56 @@ components:
       pattern: "^[a-zA-Z0-9|-]{0,64}}$"
       readOnly: true
       example: "123"
+    jwtClaims:
+      type: object
+      description: The claims of the JWT
+      readOnly: true
+      properties:
+        issuer:
+          type: string
+          description: The name of who issued this jwt
+          example: https://api.contactz.com.au
+        sub:
+          type: string
+          description: the user uuid this JWT is associated with
+        aud:
+          type: object
+          description: the account this JWT is associated with
+          properties:
+            account:
+              type: object
+              properties:
+                id:
+                  type: string
+                role:
+                  type: string
+        exp:
+          type: string
+          description: the expiry of the JWT
+          example: 4h
+    userLogin:
+      type: object
+      description: Information required to create a new account
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: The username of the account
+          nullable: false
+        password:
+          type: string
+          description: The password of the account
+          nullable: false
+    userResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: The JWT token to use for authentication
+        claims:
+          $ref: "#/components/schemas/jwtClaims"
     contact:
       type: object
       description: Structure of the contact information
@@ -1229,7 +1343,7 @@ components:
     contactResponse:
       type: object
       properties:
-        xref:
+        uuid:
           $ref: "#/components/schemas/entityId"
     contactList:
       type: object
@@ -1283,7 +1397,7 @@ components:
     addressResponse:
       type: object
       properties:
-        xref:
+        uuid:
           $ref: "#/components/schemas/entityId"
     addressList:
       type: object
@@ -1324,7 +1438,7 @@ components:
     accountResponse:
       type: object
       properties:
-        xref:
+        uuid:
           $ref: "#/components/schemas/entityId"
     accountList:
       type: object
@@ -1345,7 +1459,7 @@ components:
     tagResponse:
       type: object
       properties:
-        xref:
+        uuid:
           $ref: "#/components/schemas/entityId"
     tagList:
       type: object
@@ -1367,7 +1481,7 @@ components:
     groupResponse:
       type: object
       properties:
-        xref:
+        uuid:
           $ref: "#/components/schemas/entityId"
     groupList:
       type: object

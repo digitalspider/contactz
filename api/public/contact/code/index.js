@@ -1,6 +1,8 @@
 const httpService = require('./httpService');
 const dbService = require('./dbService');
 
+const RESERVED_TABLE_NAMES = ['group', 'role', 'user'];
+
 exports.handler = async (event, _context) => {
   console.log('==== event ====');
   console.log(event);
@@ -16,16 +18,37 @@ exports.handler = async (event, _context) => {
     const method = event.httpMethod;
     const id = event.pathParameters ? event.pathParameters.id : null;
     console.log(`id=${id}`);
-    const pathContext = event.path ? event.path.split('/')[1] : null;
+    const pathParts = event.path ? event.path.split('/') : null;
+    const pathContext = pathParts.length > 1 ? pathParts[1] : null;
     console.log(`pathContext=${pathContext}`);
     if (!pathContext) {
       return httpService.sendResponseOk({ intro: 'welcome' }, headers);
     }
-    if (!['contact', 'account', 'address', 'tag', 'group'].includes(pathContext)) {
+    if (!['user', 'contact', 'account', 'address', 'tag', 'group'].includes(pathContext)) {
       throw new Error(`Invalid request. Path is invalid. path=${event.path}`);
     }
-    const tableName = pathContext === 'group' ? 'groups' : pathContext;
+    const tableName = RESERVED_TABLE_NAMES.includes(pathContext) ? pathContext + 's' : pathContext;
     let result;
+
+    if (pathContext === 'user') {
+      if (method !== 'POST') {
+        throw new Error(`Invalid request method: ${method}`);
+      }
+      const userAction = pathParts.length > 2 ? pathParts[2] : null;
+      if (!userAction) {
+        throw new Error('Invalid request, no user action provided');
+      }
+      switch (userAction) {
+        case 'register':
+          const tokenResponse = userService.register(event.body);
+          return httpService.sendResponseOk(tokenResponse, headers);
+        case 'login':
+          const tokenResponse = await userService.login(event.body);
+          return httpService.sendResponseOk(tokenResponse, headers);
+        default:
+          throw new Error(`Invalid request. Unknown userAction: ${userAction}`);
+      }
+    }
 
     switch (method) {
       case 'GET':
