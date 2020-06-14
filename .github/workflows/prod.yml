@@ -51,6 +51,8 @@ jobs:
       #     sam_command: 'deploy --no-fail-on-empty-changeset'
       #     directory: infra/datastore
 
+      # - name: npm install (infra/authorizer)
+      #   run: cd infra/authorizer/dependencies/nodejs && npm install && cd ../../../..
       - name: sam build (infra/authorizer)
         uses: TractorZoom/sam-cli-action@master
         with:
@@ -59,7 +61,7 @@ jobs:
       - name: sam deploy (infra/authorizer)
         uses: TractorZoom/sam-cli-action@master
         with:
-          sam_command: 'deploy --no-fail-on-empty-changeset'
+          sam_command: "deploy --no-fail-on-empty-changeset"
           directory: infra/authorizer
 
       # - name: sam build (api/config)
@@ -73,6 +75,9 @@ jobs:
       #     sam_command: 'deploy --no-fail-on-empty-changeset'
       #     directory: api/config
 
+      - name: npm install (api/public)
+        run: cd api/public/dependencies/nodejs && npm install && cd ../../../..
+
       - name: sam build (api/public)
         uses: TractorZoom/sam-cli-action@master
         with:
@@ -81,5 +86,5 @@ jobs:
       - name: sam deploy (api/public)
         uses: TractorZoom/sam-cli-action@master
         with:
-          sam_command: 'deploy --no-fail-on-empty-changeset'
+          sam_command: "deploy --no-fail-on-empty-changeset"
           directory: api/public
