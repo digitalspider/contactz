@@ -7,8 +7,8 @@ drop table if exists account_user;
 drop table if exists tag;
 drop table if exists groups;
 drop table if exists contact;
-drop table if exists users;
 drop table if exists account;
+drop table if exists users;
 drop type if exists user_role;
 drop type if exists relation;
 drop type if exists gender;
@@ -17,17 +17,6 @@ CREATE TYPE user_role AS ENUM ('admin', 'superuser', 'editor', 'viewer', 'none')
 CREATE TYPE relation AS ENUM ('parent', 'child', 'spouse', 'adpotee', 'closefriend');
 CREATE TYPE gender AS ENUM ('male', 'female');
 
-create table account (
-  id serial primary key,
-  uuid uuid not null unique DEFAULT uuid_generate_v4(),
-  name varchar(256) not null unique,
-  domain varchar(64),
-  email_domain varchar(64),
-  created_at timestamp not null default now(),
-  updated_at timestamp,
-  deleted_at timestamp
-);
-
 create table users (
   id serial primary key,
   uuid uuid not null unique DEFAULT uuid_generate_v4(),
@@ -35,6 +24,18 @@ create table users (
   password varchar(256) not null,
   contact_id bigint,
   token varchar(64),
+  created_at timestamp not null default now(),
+  updated_at timestamp,
+  deleted_at timestamp
+);
+
+create table account (
+  id serial primary key,
+  uuid uuid not null unique DEFAULT uuid_generate_v4(),
+  created_by bigint not null REFERENCES users(id),
+  name varchar(256) not null unique,
+  domain varchar(64),
+  email_domain varchar(64),
   created_at timestamp not null default now(),
   updated_at timestamp,
   deleted_at timestamp
