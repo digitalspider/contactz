@@ -76,7 +76,13 @@ jobs:
       #     directory: api/config
 
       - name: npm install (api/public)
-        run: cd api/public/dependencies/nodejs && npm install && cd ../../../..
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+      - run: cd ./api/public/dependencies/nodejs
+      - run: npm ci
+      - run: npm test
+      - run: cd ../../../..
 
       - name: sam build (api/public)
         uses: TractorZoom/sam-cli-action@master
