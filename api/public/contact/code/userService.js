@@ -36,13 +36,13 @@ async function updateUserToken(user, token) {
   user.token = token;
   const updateTokenSqlQuery = `update ${dbService.TABLE.USER} set token = $1 where id = $2`;
   const updateTokenValues = [token, user.id];
-  await executeSqlQuery(updateTokenSqlQuery, updateTokenValues);
+  await dbService.executeSqlQuery(updateTokenSqlQuery, updateTokenValues);
 }
 
 async function handleLogin({ username, password }) {
   const sqlQuery = `select id, uuid, token from ${dbService.TABLE.USER} where username = $1 and $password = md5($2)`;
   const values = [username, password];
-  const result = executeSqlQuery(sqlQuery, values);
+  const result = await dbService.executeSqlQuery(sqlQuery, values);
   if (!result || !result.rows || result.rows.length === 0) {
     return null;
   }
@@ -52,13 +52,13 @@ async function handleLogin({ username, password }) {
 async function createUser({ username, password }) {
   const sqlQuery = `insert into ${dbService.TABLE.USER} (${dbService.COLUMN.CREATED_AT}, ${dbService.COLUMN.USERNAME}, ${dbService.COLUMN.PASSWORD}) VALUES (now(), $1, md5($2))`;
   const values = [username, password];
-  return executeSqlQuery(sqlQuery, values);
+  return dbService.executeSqlQuery(sqlQuery, values);
 }
 
 async function getUserByUsername(username) {
   const sqlQuery = `select id, uuid, username, contact_id, token from ${dbService.TABLE.USER} where username = $1`;
   const values = [username];
-  const result = executeSqlQuery(sqlQuery, values);
+  const result = await dbService.executeSqlQuery(sqlQuery, values);
   if (!result || !result.rows || result.rows.length === 0) {
     return null;
   }
@@ -70,7 +70,7 @@ async function getUserByUsername(username) {
 async function getUserAccountAndRole(userId) {
   const sqlQuery = `select a.*, user_id, user_role from account a, account_user u where u.account_id=a.id and u.user_id = $1`;
   const values = [userId];
-  const result = executeSqlQuery(sqlQuery, values);
+  const result = await dbService.executeSqlQuery(sqlQuery, values);
   if (!result || !result.rows || result.rows.length === 0) {
     return undefined;
   }
