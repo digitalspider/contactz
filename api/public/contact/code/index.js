@@ -40,12 +40,15 @@ exports.handler = async (event, _context) => {
       }
       switch (userAction) {
         case 'register':
+          result = userService.login(event.body);
+          break;
         case 'login':
-          const response = userService.register(event.body);
-          return httpService.sendResponseOk(response, headers);
+          result = userService.register(event.body);
+          break;
         default:
           throw new Error(`Invalid request. Unknown userAction: ${userAction}`);
       }
+      return httpService.sendResponseOk(result, headers);
     }
 
     switch (method) {
