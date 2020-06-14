@@ -1257,9 +1257,11 @@ components:
             account:
               type: object
               properties:
-                id:
+                uuid:
                   type: string
                 role:
+                  type: string
+                domain:
                   type: string
         exp:
           type: string
@@ -1282,17 +1284,27 @@ components:
           nullable: false
     userResponse:
       type: object
+      description: Structure of the user information
       properties:
+        uuid:
+          $ref: "#/components/schemas/entityId"
+        username:
+          type: string
+          description: The username of the user
+        contact_id:
+          type: string
+          description: The uuid of the associated contact
         token:
           type: string
-          description: The JWT token to use for authentication
-        claims:
-          $ref: "#/components/schemas/jwtClaims"
+          description: The JWT token for this user
+        account:
+          $ref: "#/components/schemas/account"
+
     contact:
       type: object
       description: Structure of the contact information
       properties:
-        id:
+        uuid:
           $ref: "#/components/schemas/entityId"
         external_id:
           type: string
@@ -1410,30 +1422,20 @@ components:
       type: object
       description: Structure of the account information
       required:
-        - username
-        - password
+        - name
+        - domain
       properties:
-        username:
+        name:
           type: string
-          description: The username of the account
+          description: The name of the account
           nullable: false
-        contact_id:
-          type: number
-          description: The id of the associated contact
-    accountCreate:
-      type: object
-      description: Information required to create a new account
-      required:
-        - username
-        - password
-      properties:
-        username:
+        domain:
           type: string
-          description: The username of the account
+          description: The domain name of the account
           nullable: false
-        password:
+        email_domain:
           type: string
-          description: The password of the account
+          description: The email domain of the account
           nullable: false
     accountResponse:
       type: object

@@ -1,15 +1,26 @@
-const uuid = require('uuid').v4;
 const pg = require('pg');
 const httpService = require('./httpService');
 const secretService = require('./secretService');
 const constants = require('./constants');
 const httpStatus = constants.HTTP_STATUS;
 
-let dbPool;
+const TABLE = {
+  USERS: 'users',
+};
 
-function generateId() {
-  return `${uuid().replace(/-/g, '')}`;
-}
+const COLUMN = {
+  ID: 'id',
+  UUID: 'uuid',
+  NAME: 'name',
+  USERNAME: 'username',
+  CREATED_BY: 'created_by',
+  CREATED_AT: 'created_at',
+  UPDATED_AT: 'updated_at',
+  DELETED_AT: 'deleted_at',
+};
+const DELETED_AT_CLAUSE = `(${COLUMN.DELETED_AT} is null or ${COLUMN.DELETED_AT} > now())`;
+
+let dbPool;
 
 async function init() {
   if (!dbPool) {
@@ -53,26 +64,26 @@ async function executeSqlQuery(sqlQuery, values) {
 }
 
 function getSearchColumn(tableName) {
-  return ['account'].includes(tableName) ? 'username' : 'name';
+  return [TABLE.USERS].includes(tableName) ? COLUMN.USERNAME : COLUMN.NAME;
 }
 function getCreatedByColumn(tableName) {
-  return ['account'].includes(tableName) ? 'id' : 'created_by';
+  return [TABLE.USERS].includes(tableName) ? COLUMN.ID : COLUMN.CREATED_BY;
 }
 function getUidColumn(tableName) {
-  return ['tag', 'groups'].includes(tableName) ? 'name' : 'uuid';
+  return ['tag', 'groups'].includes(tableName) ? COLUMN.NAME : COLUMN.UUID;
 }
 
 async function validate(tableName, userId, id) {
-  const createdByClause = ['account'].includes(tableName) ? '' : ', created_by';
+  const createdByClause = [TABLE_USERS].includes(tableName) ? '' : `, ${COLUMN.CREATED_BY}`;
   const uidColumn = getUidColumn(tableName);
-  const sqlQuery = `select id ${createdByClause} from ${tableName} where ${uidColumn} = $1 and (deleted_at is null or deleted_at > now())`;
+  const sqlQuery = `select id ${createdByClause} from ${tableName} where ${uidColumn} = $1 and ${DELETED_AT_CLAUSE}`;
   const values = [id];
   const result = await executeSqlQuery(sqlQuery, values);
   if (result && result.rows.length === 0) {
     throw new httpService.NotFoundError(`No entity with id: ${id}`);
   }
   const foundEntity = result.rows[0];
-  const entityId = createdByClause ? foundEntity.created_by : foundEntity.id;
+  const entityId = createdByClause ? foundEntity[COLUMN.CREATED_BY] : foundEntity[COLUMN.ID];
   if (entityId !== userId) {
     throw new httpService.BadRequestError(`Permission denied`, httpStatus.FORBIDDEN);
   }
@@ -82,17 +93,16 @@ async function list(tableName, userId, searchTerm) {
   const searchParam = searchTerm ? `%${searchTerm}%` : '%';
   const searchColumn = getSearchColumn(tableName);
   const createdByColumn = getCreatedByColumn(tableName);
-  const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and (deleted_at is null or deleted_at > now())`;
+  const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and ${DELETED_AT_CLAUSE}`;
   const values = [userId, searchParam];
   const results = await executeSqlQuery(sqlQuery, values);
   return results.rows.map((row) => { delete row.id; delete row.password; return row });
 }
 
 async function create(tableName, userId, body) {
-  const id = generateId();
   const searchColumn = getSearchColumn(tableName);
-  const sqlQuery = `insert into ${tableName} (created_by, id, ${searchColumn}) VALUES ($1, $2, $3)`;
-  const values = [userId, id, body.name];
+  const sqlQuery = `insert into ${tableName} (${COLUMN.CREATED_AT}, ${searchColumn}) VALUES ($1, $2)`;
+  const values = [userId, body[searchColumn]];
   return executeSqlQuery(sqlQuery, values);
 }
 
@@ -111,7 +121,7 @@ async function update(tableName, userId, id, body) {
   const searchColumn = getSearchColumn(tableName);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
-  const sqlQuery = `update ${tableName} set ${searchColumn} = $3, updated_at=now() where ${createdByColumn} = $1 and ${uidColumn} = $2`;
+  const sqlQuery = `update ${tableName} set ${searchColumn} = $3, ${COLUMN.UPDATED_AT}=now() where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id, body.name];
   return executeSqlQuery(sqlQuery, values);
 }
@@ -120,7 +130,7 @@ async function softDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
-  const sqlQuery = `update ${tableName} set deleted_at = now() where ${createdByColumn} = $1 and ${uidColumn} = $2`;
+  const sqlQuery = `update ${tableName} set ${COLUMN.DELETED_AT} = now() where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id];
   return executeSqlQuery(sqlQuery, values);
 }
@@ -134,4 +144,4 @@ async function hardDelete(tableName, userId, id) {
   return executeSqlQuery(sqlQuery, values);
 }
 
-module.exports = { list, get, create, update, softDelete, hardDelete };
+module.exports = { list, get, create, update, softDelete, hardDelete, TABLE, COLUMN };
