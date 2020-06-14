@@ -1,4 +1,5 @@
 const httpService = require('./httpService');
+const userService = require('./userService');
 const dbService = require('./dbService');
 
 const RESERVED_TABLE_NAMES = ['group', 'role', 'user'];
@@ -10,14 +11,7 @@ exports.handler = async (event, _context) => {
     'Content-Type': 'application/json'
   };
   try {
-    const userId = event.requestContext.authorizer.principalId;
-    console.log(`userId=${userId}`);
-    if (!userId) {
-      throw new Error('Authorization failed. No user available in request');
-    }
     const method = event.httpMethod;
-    const id = event.pathParameters ? event.pathParameters.id : null;
-    console.log(`id=${id}`);
     const pathParts = event.path ? event.path.split('/') : null;
     const pathContext = pathParts.length > 1 ? pathParts[1] : null;
     console.log(`pathContext=${pathContext}`);
@@ -51,6 +45,13 @@ exports.handler = async (event, _context) => {
       return httpService.sendResponseOk(result, headers);
     }
 
+    const userId = event.requestContext.authorizer.principalId;
+    console.log(`userId=${userId}`);
+    const id = event.pathParameters ? event.pathParameters.id : null;
+    console.log(`id=${id}`);
+    if (!userId) {
+      throw new Error('Authorization failed. No user available in request');
+    }
     switch (method) {
       case 'GET':
         if (!id) {

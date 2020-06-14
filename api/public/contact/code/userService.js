@@ -7,6 +7,7 @@ const httpStatus = constants.HTTP_STATUS;
 const issuer = 'https://api.contactz.com.au';
 const exp = '4h';
 const algorithm = 'HS256';
+const { JWT_SECRET } = process.env;
 
 async function register(loginBody) {
   const username = loginBody.username;
@@ -24,7 +25,7 @@ async function login(loginBody) {
     throw new httpService.BadRequestError(`Invalid login credentials`, httpStatus.BAD_REQUEST);
   }
   const claims = getClaims(user);
-  const token = jwt.sign(claims, secret, { algorithm });
+  const token = jwt.sign(claims, JWT_SECRET, { algorithm });
   await updateUserToken(user, token);
   delete user.id;
   delete user.password;

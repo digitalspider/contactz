@@ -32,6 +32,10 @@ Parameters:
     Type: String
     Description: The domain for the API ApiMapping
     Default: sam-authorizer
+  JwtSecret:
+    Type: String
+    Description: The jwt secret required to create JWT tokens on registration/login
+    Default: secret
 Resources:
   AccessLogs:
     Type: AWS::Logs::LogGroup
@@ -44,30 +48,7 @@ Resources:
       StageName:
         Ref: StageName
       Auth:
-        DefaultAuthorizer: AuthLambdaRequestAuthorizer
         AddDefaultAuthorizerToCorsPreflight: False # CORS: removes Authorizer from the automatically created OPTIONS methods
-        Authorizers:
-          AuthLambdaRequestAuthorizer:
-            FunctionPayloadType: REQUEST
-            FunctionArn:
-              Fn::Sub: "{{resolve:secretsmanager:${AuthSecretName}:SecretString:auth-arn}}"
-            Identity:
-              ReauthorizeEvery: 0
-              Headers:
-                - Authorization
-        ResourcePolicy:
-          CustomStatements:
-            [
-              {
-                Effect: "Allow",
-                Principal: "*",
-                Action: "execute-api:Invoke",
-                Resource: "execute-api:/prod/POST/user/register,
-                  execute-api:/prod/POST/user/login",
-              },
-            ]
-        # IpRangeBlacklist:
-        #   - "10.20.30.40"
       DefinitionBody:
         Fn::Transform:
           Name: "AWS::Include"
@@ -94,6 +75,8 @@ Resources:
         Variables:
           DB_SECRET:
             Ref: DbSecretName
+          JWT_SECRET:
+            Ref: JwtSecret
       Tracing: Active
       Layers:
         - Ref: ContactDependenciesLayer
