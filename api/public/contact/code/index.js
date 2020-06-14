@@ -34,10 +34,10 @@ exports.handler = async (event, _context) => {
       }
       switch (userAction) {
         case 'register':
-          result = userService.login(event.body);
+          result = await userService.login(event.body);
           break;
         case 'login':
-          result = userService.register(event.body);
+          result = await userService.register(event.body);
           break;
         default:
           throw new Error(`Invalid request. Unknown userAction: ${userAction}`);
