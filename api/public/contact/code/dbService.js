@@ -139,9 +139,10 @@ async function softDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
-  const sqlQuery = `update ${tableName} set ${COLUMN.DELETED_AT} = now() where ${createdByColumn} = $1 and ${uidColumn} = $2`;
+  const sqlQuery = `update ${tableName} set ${COLUMN.DELETED_AT} = now() where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING ${uidColumn}`;
   const values = [userId, id];
-  return executeSqlQuery(sqlQuery, values);
+  const results = await executeSqlQuery(sqlQuery, values);
+  return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
 }
 
 async function hardDelete(tableName, userId, id) {
