@@ -1318,7 +1318,7 @@ components:
         exp:
           type: string
           description: the expiry of the JWT
-          example: 4h
+          example: 14400
     userLogin:
       type: object
       description: Information required to create a new account
@@ -1330,10 +1330,12 @@ components:
           type: string
           description: The username of the account
           nullable: false
+          minLength: 5
         password:
           type: string
           description: The password of the account
           nullable: false
+          minLength: 5
     userResponse:
       type: object
       description: Structure of the user information

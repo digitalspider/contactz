@@ -1,11 +1,10 @@
 const jwt = require('jsonwebtoken');
+const moment = require('moment');
 const dbService = require('./dbService');
-const constants = require('./constants');
 const httpService = require('./httpService');
-const httpStatus = constants.HTTP_STATUS;
 
 const issuer = 'https://api.contactz.com.au';
-const exp = 4 * 60 * 60; // 4h
+const jwtExpiryInSec = 4 * 60 * 60; // 4h
 const algorithm = 'HS256';
 const { JWT_SECRET } = process.env;
 
@@ -13,7 +12,7 @@ async function register(loginBody) {
   const username = loginBody.username;
   const existingUser = await getUserByUsername(username);
   if (existingUser) {
-    throw new httpService.BadRequestError(`Username already exists: ${username}`, httpStatus.BAD_REQUEST);
+    throw new httpService.BadRequestError(`Username already exists: ${username}`);
   }
   await createUser(loginBody);
   return login(loginBody);
@@ -23,7 +22,7 @@ async function login(loginBody) {
   const user = await handleLogin(loginBody);
   console.log(`user=${JSON.stringify(user)}`);
   if (!user) {
-    throw new httpService.BadRequestError(`Invalid login credentials`, httpStatus.BAD_REQUEST);
+    throw new httpService.BadRequestError(`Invalid login credentials`);
   }
   const claims = getClaims(user);
   console.log(`claims=${JSON.stringify(claims)}`);
@@ -85,7 +84,7 @@ function getClaims(user) {
   const claims = {
     issuer,
     sub: user.uuid,
-    exp,
+    exp: moment().unix() + jwtExpiryInSec,
   };
   if (user.account) {
     claims.aud = {

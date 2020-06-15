@@ -23,7 +23,7 @@ create table users (
   username varchar(64) not null unique,
   password varchar(256) not null,
   contact_id bigint,
-  token varchar(64),
+  token varchar(512),
   created_at timestamp not null default now(),
   updated_at timestamp,
   deleted_at timestamp
@@ -115,15 +115,15 @@ create table address (
 alter table users add constraint fk_user_contact foreign key (contact_id) REFERENCES contact(id) ON DELETE CASCADE;
 alter table contact add constraint fk_contact_address foreign key (address_id) REFERENCES address(id) ON DELETE CASCADE;
 
-insert into users (username, password) VALUES ('admin',md5('admin'));
+insert into users (username, password) VALUES ('guest',md5('guest'));
 insert into groups (created_by, name) VALUES (1,'family');
 insert into groups (created_by, name) VALUES (1,'friends');
 insert into groups (created_by, name) VALUES (1,'work');
 
 insert into contact (created_by, name) VALUES (1,'first contact');
-update account set contact_id=1 where username='admin';
+update account set contact_id=1 where username='guest';
 
-insert into groups (created_by, name) VALUES (1, 'club');
+insert into groups (created_by, name) VALUES (1, 'custom');
 insert into contact (created_by, name, groups, relation_data, gender) VALUES (1,'second contact', '{1, 4}','[{"rid":"parent", "cid": "1"}]', 'female');
 
 insert into address (created_by, contact_id, street, postcode) VALUES (1,1,'street2',2000);
