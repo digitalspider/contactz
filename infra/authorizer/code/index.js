@@ -39,12 +39,7 @@ exports.handler = async function (event, _context, callback) {
 }
 
 const verifyToken = async function (token) {
-  console.log('token');
-  console.log(token);
-  const result = jwt.verify(token, JWT_SECRET, { algorithm: ['HS256'] });
-  console.log('result');
-  console.log(result);
-  return result;
+  return jwt.verify(token, JWT_SECRET, { algorithm: ['HS256'] });
 };
 
 // Help function to generate an IAM policy
