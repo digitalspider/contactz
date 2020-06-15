@@ -111,7 +111,7 @@ async function create(tableName, userId, body) {
   const sqlQuery = `insert into ${tableName} (${COLUMN.CREATED_BY}, ${searchColumn}) VALUES ($1, $2) RETURNING ${uidColumn}`;
   const values = [userId, body[searchColumn]];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rowCount > 0 ? results.rows[uidColumn] : null;
+  return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
 }
 
 async function get(tableName, userId, id) {
