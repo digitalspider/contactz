@@ -25,7 +25,9 @@ exports.handler = async function (event, _context, callback) {
         const jwtToken = keyValue[1].trim();
         const jwtPayload = await verifyToken(jwtToken);
         if (jwtPayload) {
-          callback(null, generateAllow(jwtPayload, event.methodArn));
+          const principalId = jwtPayload.sub;
+          const context = jwtPayload.aud ? { audience: jwtPayload.aud } : undefined;
+          callback(null, generateAllow(principalId, event.methodArn, context));
           return;
         }
       }
@@ -37,31 +39,38 @@ exports.handler = async function (event, _context, callback) {
 }
 
 const verifyToken = async function (token) {
-  return jwt.verify(token, JWT_SECRET, { algorithm: ['HS256'] });
+  console.log('token');
+  console.log(token);
+  const result = jwt.verify(token, JWT_SECRET, { algorithm: ['HS256'] });
+  console.log('result');
+  console.log(result);
+  return result;
 };
 
 // Help function to generate an IAM policy
-const generatePolicy = function (principalId, effect, resource) {
+const generatePolicy = function (principalId, effect, resource, context) {
   // Required output:
-  var authResponse = {};
+  const authResponse = {};
   if (principalId) {
     authResponse.principalId = principalId;
-
+    if (context) {
+      authResponse.context = context;
+    }
     if (effect && resource) {
-      var policyDocument = {};
-      policyDocument.Version = '2012-10-17';
-      policyDocument.Statement = [];
-      var statementOne = {};
-      statementOne.Action = 'execute-api:Invoke';
-      statementOne.Effect = EFFECTS.find(e => e === effect.toLowerCase()) ? effect : DENY;
-      statementOne.Resource = resource;
-      policyDocument.Statement[0] = statementOne;
+      const policyDocument = {
+        Version: '2012-10-17',
+        Statement: [{
+          Action: 'execute-api:Invoke',
+          Effect: EFFECTS.find(e => e === effect.toLowerCase()) ? effect : DENY,
+          Resource: resource,
+        }],
+      };
       authResponse.policyDocument = policyDocument;
     }
   }
   return authResponse;
 }
 
-const generateAllow = function (principalId, resource) {
-  return generatePolicy(principalId, 'Allow', resource);
+const generateAllow = function (principalId, resource, context) {
+  return generatePolicy(principalId, 'Allow', resource, context);
 }

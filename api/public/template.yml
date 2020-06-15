@@ -337,7 +337,7 @@ Resources:
     Properties:
       LayerName: contact-dependencies
       Description: All dependencies for contact lambda
-      ContentUri: ./contact/dependencies/
+      ContentUri: contact/dependencies/
       CompatibleRuntimes:
         - nodejs12.x
       RetentionPolicy: Delete

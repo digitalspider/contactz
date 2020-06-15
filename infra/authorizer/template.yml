@@ -31,7 +31,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Role:
-        Fn::GetAtt: LambdaRole.Arn
+        Fn::GetAtt: AuthLambdaRole.Arn
       CodeUri: code
       Handler: index.handler
       Runtime: nodejs12.x
@@ -39,12 +39,24 @@ Resources:
       FunctionName: sam-authorizer
       Timeout: 10
       Tracing: Active
+      Layers:
+        - Ref: AuthDependenciesLayer
       Environment:
         Variables:
           JWT_SECRET:
             Ref: JwtSecret
 
-  LambdaRole:
+  AuthDependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: auth-dependencies
+      Description: All dependencies for auth lambda
+      ContentUri: dependencies/
+      CompatibleRuntimes:
+        - nodejs12.x
+      RetentionPolicy: Delete
+
+  AuthLambdaRole:
     Type: AWS::IAM::Role
     Properties:
       Description: Allows a lambda to access the KMS key to decrypt DB config data

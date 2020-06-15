@@ -2,8 +2,5 @@
   "name": "authorizer-lambda",
   "version": "1.0.0",
   "main": "index.js",
-  "dependencies": {
-    "aws-sdk": "^2.630.0",
-    "jsonwebtoken": "^8.5.1"
-  }
+  "dependencies": {}
 }
