@@ -107,9 +107,11 @@ async function list(tableName, userId, searchTerm) {
 
 async function create(tableName, userId, body) {
   const searchColumn = getSearchColumn(tableName);
-  const sqlQuery = `insert into ${tableName} (${COLUMN.CREATED_AT}, ${searchColumn}) VALUES ($1, $2)`;
+  const uidColumn = getUidColumn(tableName);
+  const sqlQuery = `insert into ${tableName} (${COLUMN.CREATED_BY}, ${searchColumn}) VALUES ($1, $2) RETURNING ${uidColumn}`;
   const values = [userId, body[searchColumn]];
-  return executeSqlQuery(sqlQuery, values);
+  const results = await executeSqlQuery(sqlQuery, values);
+  return results.rowCount > 0 ? results.rows[uidColumn] : null;
 }
 
 async function get(tableName, userId, id) {
