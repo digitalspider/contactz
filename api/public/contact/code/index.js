@@ -46,7 +46,8 @@ exports.handler = async (event, _context) => {
       return httpService.sendResponseOk(result, headers);
     }
 
-    const userId = event.requestContext.authorizer.principalId;
+    const userUuid = event.requestContext.authorizer.principalId;
+    const userId = userService.getUserByUuid(userUuid);
     console.log(`userId=${userId}`);
     const id = event.pathParameters ? event.pathParameters.id : null;
     console.log(`id=${id}`);

@@ -70,6 +70,18 @@ async function getUserByUsername(username) {
   return user;
 }
 
+async function getUserByUuid(uuid) {
+  const sqlQuery = `select id, uuid, username, contact_id, token from ${dbService.TABLE.USERS} where uuid = $1`;
+  const values = [uuid];
+  const result = await dbService.executeSqlQuery(sqlQuery, values);
+  if (result.rowCount === 0) {
+    return null;
+  }
+  const user = result.rows[0];
+  user.account = await getUserAccountAndRole(user.id);
+  return user;
+}
+
 async function getUserAccountAndRole(userId) {
   const sqlQuery = `select a.*, user_id, user_role from account a, account_user u where u.account_id=a.id and u.user_id = $1`;
   const values = [userId];
@@ -87,15 +99,11 @@ function getClaims(user) {
     exp: moment().unix() + jwtExpiryInSec,
   };
   if (user.account) {
-    claims.aud = {
-      account: {
-        uuid: account.uuid,
-        role: account.role,
-        domain: account.domain,
-      }
-    }
+    claims.aud = account.uuid;
+    claims.role = account.role;
+    claims.domain = account.domain;
   }
   return claims;
 }
 
-module.exports = { register, login };
+module.exports = { register, login, getUserByUuid, getUserByUsername };

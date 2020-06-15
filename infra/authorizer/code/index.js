@@ -26,7 +26,11 @@ exports.handler = async function (event, _context, callback) {
         const jwtPayload = await verifyToken(jwtToken);
         if (jwtPayload) {
           const principalId = jwtPayload.sub;
-          const context = jwtPayload.aud ? { audience: jwtPayload.aud } : undefined;
+          const context = {
+            aud: jwtPayload.aud,
+            role: jwtPayload.role,
+            domain: jwtPayload.domain,
+          };
           callback(null, generateAllow(principalId, event.methodArn, context));
           return;
         }
