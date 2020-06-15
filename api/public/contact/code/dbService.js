@@ -129,9 +129,10 @@ async function update(tableName, userId, id, body) {
   const searchColumn = getSearchColumn(tableName);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
-  const sqlQuery = `update ${tableName} set ${searchColumn} = $3, ${COLUMN.UPDATED_AT}=now() where ${createdByColumn} = $1 and ${uidColumn} = $2`;
-  const values = [userId, id, body.name];
-  return executeSqlQuery(sqlQuery, values);
+  const sqlQuery = `update ${tableName} set ${searchColumn} = $3, ${COLUMN.UPDATED_AT}=now() where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING ${uidColumn}`;
+  const values = [userId, id, body[searchColumn]];
+  const results = await executeSqlQuery(sqlQuery, values);
+  return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
 }
 
 async function softDelete(tableName, userId, id) {
