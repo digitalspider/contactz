@@ -22,7 +22,7 @@ x-amazon-apigateway-request-validators:
 x-amazon-apigateway-request-validator: params-only # Default
 
 servers:
-  - url: https://api.contactz.com.au/v1
+  - url: https://api.contactz.com.au
     description: Production server
 
 security:
