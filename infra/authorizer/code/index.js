@@ -10,12 +10,12 @@ const BEARER_LC = 'bearer';
 
 AWS.config.update({ region: 'ap-southeast-2' });
 
-const JWT_SECRET = process.env['JWT_SECRET'];
+const { JWT_SECRET } = process.env;
 
 exports.handler = async function (event, _context, callback) {
   try {
     const authHeaderValue = event.headers && event.headers.authorization || event.headers.Authorization;
-    if (typeof process.env.JWT_SECRET !== 'string') {
+    if (!JWT_SECRET) {
       // Handle system errors
       // Return a 500 Environment variables are not set
       callback("Error: Environment variables are not set");
@@ -37,7 +37,7 @@ exports.handler = async function (event, _context, callback) {
 }
 
 const verifyToken = async function (token) {
-  return token; // jwt.verify(token, JWT_SECRET, { algorithm: ['HS256'] });
+  return jwt.verify(token, JWT_SECRET, { algorithm: ['HS256'] });
 };
 
 // Help function to generate an IAM policy

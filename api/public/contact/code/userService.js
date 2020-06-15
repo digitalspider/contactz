@@ -42,7 +42,7 @@ async function updateUserToken(user, token) {
   await dbService.executeSqlQuery(updateTokenSqlQuery, updateTokenValues);
 }
 
-async function handleLogin({username, password}) {
+async function handleLogin({ username, password }) {
   const sqlQuery = `select id, uuid, token from ${dbService.TABLE.USERS} where username = $1 and password = md5($2)`;
   const values = [username, password];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
@@ -52,7 +52,7 @@ async function handleLogin({username, password}) {
   return getUserByUsername(username);
 }
 
-async function createUser({username, password}) {
+async function createUser({ username, password }) {
   const sqlQuery = `insert into ${dbService.TABLE.USERS} (${dbService.COLUMN.CREATED_AT}, ${dbService.COLUMN.USERNAME}, ${dbService.COLUMN.PASSWORD}) VALUES (now(), $1, md5($2))`;
   const values = [username, password];
   return dbService.executeSqlQuery(sqlQuery, values);
