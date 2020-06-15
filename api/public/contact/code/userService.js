@@ -15,13 +15,12 @@ async function register(loginBody) {
   if (existingUser) {
     throw new httpService.BadRequestError(`Username already exists: ${username}`, httpStatus.BAD_REQUEST);
   }
-  await createUser(loginBody);
+  await createUser(loginBody.username, loginBody.password);
   return login(loginBody);
 }
 
 async function login(loginBody) {
-  console.log(`JWT_SECRET=${JSON.stringify(JWT_SECRET)}`);
-  const user = await handleLogin(loginBody);
+  const user = await handleLogin(loginBody.username, loginBody.password);
   console.log(`user=${JSON.stringify(user)}`);
   if (!user) {
     throw new httpService.BadRequestError(`Invalid login credentials`, httpStatus.BAD_REQUEST);
@@ -44,17 +43,17 @@ async function updateUserToken(user, token) {
   await dbService.executeSqlQuery(updateTokenSqlQuery, updateTokenValues);
 }
 
-async function handleLogin({ username, password }) {
+async function handleLogin(username, password) {
   const sqlQuery = `select id, uuid, token from ${dbService.TABLE.USERS} where username = $1 and $password = md5($2)`;
   const values = [username, password];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
-  if (!result || !result.rows || result.rows.length === 0) {
+  if (result.rowCount === 0) {
     return null;
   }
   return getUserByUsername(username);
 }
 
-async function createUser({ username, password }) {
+async function createUser(username, password) {
   const sqlQuery = `insert into ${dbService.TABLE.USERS} (${dbService.COLUMN.CREATED_AT}, ${dbService.COLUMN.USERNAME}, ${dbService.COLUMN.PASSWORD}) VALUES (now(), $1, md5($2))`;
   const values = [username, password];
   return dbService.executeSqlQuery(sqlQuery, values);
@@ -64,7 +63,7 @@ async function getUserByUsername(username) {
   const sqlQuery = `select id, uuid, username, contact_id, token from ${dbService.TABLE.USERS} where username = $1`;
   const values = [username];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
-  if (!result || !result.rows || result.rows.length === 0) {
+  if (result.rowCount === 0) {
     return null;
   }
   const user = result.rows[0];
@@ -76,7 +75,7 @@ async function getUserAccountAndRole(userId) {
   const sqlQuery = `select a.*, user_id, user_role from account a, account_user u where u.account_id=a.id and u.user_id = $1`;
   const values = [userId];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
-  if (!result || !result.rows || result.rows.length === 0) {
+  if (result.rowCount === 0) {
     return undefined;
   }
   return result.rows[0]; // TODO: User could potentially have multiple accounts

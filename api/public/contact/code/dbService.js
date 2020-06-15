@@ -85,7 +85,7 @@ async function validate(tableName, userId, id) {
   const sqlQuery = `select id ${createdByClause} from ${tableName} where ${uidColumn} = $1 and ${DELETED_AT_CLAUSE}`;
   const values = [id];
   const result = await executeSqlQuery(sqlQuery, values);
-  if (result && result.rows.length === 0) {
+  if (result.rowCount === 0) {
     throw new httpService.NotFoundError(`No entity with id: ${id}`);
   }
   const foundEntity = result.rows[0];
