@@ -5,7 +5,7 @@ const httpService = require('./httpService');
 const httpStatus = constants.HTTP_STATUS;
 
 const issuer = 'https://api.contactz.com.au';
-const exp = '4h';
+const exp = 4 * 60 * 60; // 4h
 const algorithm = 'HS256';
 const { JWT_SECRET } = process.env;
 
@@ -15,12 +15,12 @@ async function register(loginBody) {
   if (existingUser) {
     throw new httpService.BadRequestError(`Username already exists: ${username}`, httpStatus.BAD_REQUEST);
   }
-  await createUser(loginBody.username, loginBody.password);
+  await createUser(loginBody);
   return login(loginBody);
 }
 
 async function login(loginBody) {
-  const user = await handleLogin(loginBody.username, loginBody.password);
+  const user = await handleLogin(loginBody);
   console.log(`user=${JSON.stringify(user)}`);
   if (!user) {
     throw new httpService.BadRequestError(`Invalid login credentials`, httpStatus.BAD_REQUEST);
@@ -43,7 +43,7 @@ async function updateUserToken(user, token) {
   await dbService.executeSqlQuery(updateTokenSqlQuery, updateTokenValues);
 }
 
-async function handleLogin(username, password) {
+async function handleLogin({username, password}) {
   const sqlQuery = `select id, uuid, token from ${dbService.TABLE.USERS} where username = $1 and password = md5($2)`;
   const values = [username, password];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
@@ -53,7 +53,7 @@ async function handleLogin(username, password) {
   return getUserByUsername(username);
 }
 
-async function createUser(username, password) {
+async function createUser({username, password}) {
   const sqlQuery = `insert into ${dbService.TABLE.USERS} (${dbService.COLUMN.CREATED_AT}, ${dbService.COLUMN.USERNAME}, ${dbService.COLUMN.PASSWORD}) VALUES (now(), $1, md5($2))`;
   const values = [username, password];
   return dbService.executeSqlQuery(sqlQuery, values);

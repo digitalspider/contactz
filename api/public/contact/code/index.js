@@ -22,6 +22,7 @@ exports.handler = async (event, _context) => {
       throw new Error(`Invalid request. Path is invalid. path=${event.path}`);
     }
     const tableName = RESERVED_TABLE_NAMES.includes(pathContext) ? pathContext + 's' : pathContext;
+    const body = typeof event.body === 'string' ? JSON.parse(event.body) : undefined;
     let result;
 
     if (pathContext === 'user') {
@@ -34,10 +35,10 @@ exports.handler = async (event, _context) => {
       }
       switch (userAction) {
         case 'register':
-          result = await userService.register(event.body);
+          result = await userService.register(body);
           break;
         case 'login':
-          result = await userService.login(event.body);
+          result = await userService.login(body);
           break;
         default:
           throw new Error(`Invalid request. Unknown userAction: ${userAction}`);
@@ -62,13 +63,13 @@ exports.handler = async (event, _context) => {
         }
         break;
       case 'POST':
-        result = await dbService.create(tableName, userId, event.body);
+        result = await dbService.create(tableName, userId, body);
         break;
       case 'PUT':
         if (!id) {
           throw new Error('Invalid request, no ID provided');
         }
-        result = await dbService.update(tableName, userId, id, event.body);
+        result = await dbService.update(tableName, userId, id, body);
         break;
       case 'DELETE':
         if (!id) {
