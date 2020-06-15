@@ -44,7 +44,7 @@ async function updateUserToken(user, token) {
 }
 
 async function handleLogin(username, password) {
-  const sqlQuery = `select id, uuid, token from ${dbService.TABLE.USERS} where username = $1 and $password = md5($2)`;
+  const sqlQuery = `select id, uuid, token from ${dbService.TABLE.USERS} where username = $1 and password = md5($2)`;
   const values = [username, password];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
   if (result.rowCount === 0) {
