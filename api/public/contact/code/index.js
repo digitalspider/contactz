@@ -47,13 +47,14 @@ exports.handler = async (event, _context) => {
     }
 
     const userUuid = event.requestContext.authorizer.principalId;
-    const userId = userService.getUserByUuid(userUuid);
+    const user = await userService.getUserByUuid(userUuid);
+    if (!user) {
+      throw new Error('Authorization failed. No user available in request');
+    }
+    const userId = user.id;
     console.log(`userId=${userId}`);
     const id = event.pathParameters ? event.pathParameters.id : null;
     console.log(`id=${id}`);
-    if (!userId) {
-      throw new Error('Authorization failed. No user available in request');
-    }
     switch (method) {
       case 'GET':
         if (!id) {
