@@ -15,8 +15,8 @@ exports.handler = async (event, _context) => {
     const pathParts = event.path ? event.path.split('/') : null;
     const pathContext = pathParts.length > 1 ? pathParts[1] : null;
     console.log(`pathContext=${pathContext}`);
-    if (!pathContext) {
-      return httpService.sendResponseOk({ intro: 'welcome' }, headers);
+    if (!pathContext || pathContext === 'ping') {
+      return httpService.sendResponseOk({ success: true }, headers);
     }
     if (!['user', 'contact', 'account', 'address', 'tag', 'group'].includes(pathContext)) {
       throw new Error(`Invalid request. Path is invalid. path=${event.path}`);

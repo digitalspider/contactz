@@ -4,6 +4,7 @@ info:
   title: contact-public-api
   description: Contact Public APIs
 tags:
+  - name: "ping"
   - name: "user"
   - name: "account"
   - name: "contact"
@@ -28,6 +29,40 @@ servers:
 security:
   - BearerAuth: []
 paths:
+  /:
+    get:
+      tags:
+        - "ping"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/pingResponse"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /ping:
+    get:
+      tags:
+        - "ping"
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/pingResponse"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
   /user/register:
     post:
       tags:
@@ -1319,6 +1354,12 @@ components:
           type: string
           description: the expiry of the JWT
           example: 14400
+    pingResponse:
+      type: object
+      description: Ping response information
+      properties:
+        success:
+          type: boolean
     userLogin:
       type: object
       description: Information required to create a new account
