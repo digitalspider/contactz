@@ -103,7 +103,7 @@ create table address (
   name varchar(256),
   street varchar(256) not null,
   suburb varchar(256),
-  postcode numeric(6,0) not null,
+  postcode varchar(10) not null,
   state char(3) not null default 'NSW',
   country char(2) not null default 'AU',
   sort_order int not null default 99,

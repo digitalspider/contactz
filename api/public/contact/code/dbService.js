@@ -79,6 +79,75 @@ function getUidColumn(tableName) {
   return [TABLE.TAG, TABLE.GROUPS].includes(tableName) ? COLUMN.NAME : COLUMN.UUID;
 }
 
+const columnDataCache = {};
+
+async function getTableColumnData(tableName) {
+  if (columnDataCache[tableName]) {
+    return columnDataCache[tableName];
+  }
+  const sqlQuery = `select column_name,is_nullable,data_type from information_schema.columns where table_name = $1`;
+  const values = [tableName];
+  const result = await executeSqlQuery(sqlQuery, values);
+  if (result.rowCount === 0) {
+    throw new httpService.NotFoundError(`Table has no rows! TableName= ${tableName}`);
+  }
+  const columnData = result.rows
+    .filter((row) => !['id', 'uuid', 'created_by', 'created_at', 'updated_at', 'deleted_at'].includes(row.column_name))
+    .map((row) => ({
+      name: row.column_name,
+      nullable: row.is_nullable,
+      data_type: row.data_type,
+    })
+    );
+  columnDataCache[tableName] = columnData;
+  return columnData;
+}
+
+async function getInsertData(userId, tableName, body) {
+  const columnData = await getTableColumnData(tableName);
+  const params = ['$1'];
+  const columnNames = [COLUMN.CREATED_BY];
+  const values = [userId];
+  columnData.map((column) => {
+    const columnValue = body[column.name];
+    if (columnValue) {
+      columnNames.push(column.name)
+      params.push(`\$${params.length + 1}`);
+      values.push(columnValue);
+    }
+  });
+  if (values.length === 1) {
+    throw new Error(`No data to insert for ${tableName}`);
+  }
+  const result = {
+    columnNames: columnNames.join(','),
+    params: params.join(','),
+    values,
+  };
+  return result;
+}
+
+async function getUpdateData(userId, tableName, body) {
+  const columnData = await getTableColumnData(tableName);
+  const params = [`${COLUMN.UPDATED_AT} = now()`];
+  const values = [];
+  columnData.map((column) => {
+    const columnValue = body[column.name];
+    if (columnValue) {
+      params.push(`${column.name} = \$${params.length + 2}`);
+      values.push(columnValue);
+    }
+  });
+  if (values.length === 0) {
+    throw new Error(`No data to update for ${tableName}`);
+  }
+  const result = {
+    params: params.join(','),
+    values,
+  };
+  return result;
+}
+
 async function validate(tableName, userId, id) {
   const createdByClause = [TABLE.USERS].includes(tableName) ? '' : `, ${COLUMN.CREATED_BY}`;
   const uidColumn = getUidColumn(tableName);
@@ -106,11 +175,11 @@ async function list(tableName, userId, searchTerm) {
 }
 
 async function create(tableName, userId, body) {
-  const searchColumn = getSearchColumn(tableName);
   const uidColumn = getUidColumn(tableName);
-  const sqlQuery = `insert into ${tableName} (${COLUMN.CREATED_BY}, ${searchColumn}) VALUES ($1, $2) RETURNING ${uidColumn}`;
-  const values = [userId, body[searchColumn]];
-  const results = await executeSqlQuery(sqlQuery, values);
+  const insertData = await getInsertData(userId, tableName, body);
+  console.log(insertData);
+  const sqlQuery = `insert into ${tableName} (${insertData.columnNames}) VALUES (${insertData.params}) RETURNING ${uidColumn}`;
+  const results = await executeSqlQuery(sqlQuery, insertData.values);
   return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
 }
 
@@ -126,11 +195,13 @@ async function get(tableName, userId, id) {
 
 async function update(tableName, userId, id, body) {
   await validate(tableName, userId, id);
-  const searchColumn = getSearchColumn(tableName);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
-  const sqlQuery = `update ${tableName} set ${searchColumn} = $3, ${COLUMN.UPDATED_AT}=now() where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING ${uidColumn}`;
-  const values = [userId, id, body[searchColumn]];
+  const updateData = await getUpdateData(userId, tableName, body);
+  console.log(updateData);
+  const sqlQuery = `update ${tableName} set ${updateData.params} where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING ${uidColumn}`;
+  const values = [userId, id, ...updateData.values];
+  console.log(values);
   const results = await executeSqlQuery(sqlQuery, values);
   return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
 }

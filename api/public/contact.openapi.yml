@@ -1463,10 +1463,17 @@ components:
       type: object
       description: Structure of the address information
       required:
+        - contact_id
+        - name
         - street
         - state
         - postcode
       properties:
+        contact_id:
+          $ref: "#/components/schemas/entityId"
+        name:
+          type: string
+          description: The name/label for this address
         street:
           type: string
           description: The street address
@@ -1476,16 +1483,16 @@ components:
           example: Toongabbie
         state:
           type: string
-          description: The state, one of NSW, VIC, WA, QLD, NT, TAS or ACT
-          pattern: ^(NSW|VIC|WA|QLD|NT|TAS|ACT)$
+          description: The state, one of NSW, VIC, WA, QLD, NT, TAS, ACT or OTHER
+          pattern: ^(NSW|VIC|WA|QLD|NT|TAS|ACT|OTHER)$
           example: NSW
           nullable: true
         postcode:
           type: string
           description: The four digit (AU) postcode
-          pattern: "^[0-9]{4}$"
+          pattern: "^[a-zA-Z0-9|-| ]{4,10}$"
           example: "2145"
-        country_code:
+        country:
           type: string
           description: The ISO 3166 Alpha-2 country code. Australia is AU
           pattern: ^([A-Z]{2}|[a-z]{2})$
