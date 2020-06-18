@@ -5,6 +5,9 @@ drop table if exists address;
 alter table users drop constraint if exists fk_user_contact;
 drop table if exists account_user;
 drop table if exists org_user;
+drop table if exists invite;
+drop table if exists friend;
+drop table if exists message;
 drop table if exists tag;
 drop table if exists groups;
 drop table if exists contact;
@@ -14,6 +17,8 @@ drop table if exists users;
 drop type if exists user_role;
 drop type if exists relation;
 drop type if exists gender;
+drop type if exists contact_method;
+drop type if exists request_status;
 
 CREATE TYPE user_role AS ENUM ('admin', 'superuser', 'editor', 'viewer', 'none');
 CREATE TYPE relation AS ENUM ('parent', 'child', 'adpoted', 'spouse', 'closefriend', 'ex', 'sibling', 'manager', 'worker', 'peer');
@@ -32,21 +37,6 @@ create table users (
   token_expiry timestamp,
   refresh_token varchar(512),
   preferences jsonb,
-  created_at timestamp not null default now(),
-  updated_at timestamp,
-  deleted_at timestamp
-);
-
-create table invite (
-  id serial primary key,
-  uuid uuid not null unique DEFAULT uuid_generate_v4(),
-  created_by bigint not null REFERENCES users(id),
-  contact_id bigint not null REFERENCES contact (id),
-  contact_method contact_method not null default ('email'),
-  token varchar(512) not null,
-  status request_status not null DEFAULT 'request',
-  message text,
-  user_id bigint REFERENCES users(id),
   created_at timestamp not null default now(),
   updated_at timestamp,
   deleted_at timestamp
@@ -121,6 +111,21 @@ create table contact (
   other_data jsonb,
   tags int[],
   sort_order int not null default 99,
+  created_at timestamp not null default now(),
+  updated_at timestamp,
+  deleted_at timestamp
+);
+
+create table invite (
+  id serial primary key,
+  uuid uuid not null unique DEFAULT uuid_generate_v4(),
+  created_by bigint not null REFERENCES users(id),
+  contact_id bigint not null REFERENCES contact (id),
+  contact_method contact_method not null default ('email'),
+  token varchar(512) not null,
+  status request_status not null DEFAULT 'request',
+  message text,
+  user_id bigint REFERENCES users(id),
   created_at timestamp not null default now(),
   updated_at timestamp,
   deleted_at timestamp
