@@ -169,46 +169,46 @@ Resources:
               Ref: PublicApi
             Stage:
               Ref: StageName
-        ListAccount:
+        ListOrganisation:
           Type: Api
           Properties:
-            Path: /account
+            Path: /org
             Method: get
             RestApiId:
               Ref: PublicApi
             Stage:
               Ref: StageName
-        GetAccount:
+        GetOrganisation:
           Type: Api
           Properties:
-            Path: /account/{id}
+            Path: /org/{id}
             Method: get
             RestApiId:
               Ref: PublicApi
             Stage:
               Ref: StageName
-        CreateAccount:
+        CreateOrganisation:
           Type: Api
           Properties:
-            Path: /account
+            Path: /org
             Method: post
             RestApiId:
               Ref: PublicApi
             Stage:
               Ref: StageName
-        UpdateAccount:
+        UpdateOrganisation:
           Type: Api
           Properties:
-            Path: /account/{id}
+            Path: /org/{id}
             Method: put
             RestApiId:
               Ref: PublicApi
             Stage:
               Ref: StageName
-        DeleteAccount:
+        DeleteOrganisation:
           Type: Api
           Properties:
-            Path: /account/{id}
+            Path: /org/{id}
             Method: delete
             RestApiId:
               Ref: PublicApi

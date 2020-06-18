@@ -4,18 +4,22 @@ alter table contact drop constraint if exists fk_contact_address;
 drop table if exists address;
 alter table users drop constraint if exists fk_user_contact;
 drop table if exists account_user;
+drop table if exists org_user;
 drop table if exists tag;
 drop table if exists groups;
 drop table if exists contact;
 drop table if exists account;
+drop table if exists org;
 drop table if exists users;
 drop type if exists user_role;
 drop type if exists relation;
 drop type if exists gender;
 
 CREATE TYPE user_role AS ENUM ('admin', 'superuser', 'editor', 'viewer', 'none');
-CREATE TYPE relation AS ENUM ('parent', 'child', 'spouse', 'adpotee', 'closefriend');
+CREATE TYPE relation AS ENUM ('parent', 'child', 'adpoted', 'spouse', 'closefriend', 'ex', 'sibling', 'manager', 'worker', 'peer');
 CREATE TYPE gender AS ENUM ('male', 'female');
+CREATE TYPE contact_method AS ENUM ('email', 'sms', 'other');
+CREATE TYPE request_status AS ENUM ('request', 'confirmed', 'denied', 'expired');
 
 create table users (
   id serial primary key,
@@ -23,17 +27,60 @@ create table users (
   username varchar(64) not null unique,
   password varchar(256) not null,
   contact_id bigint,
+  work_contact_id bigint,
   token varchar(512),
+  token_expiry timestamp,
+  refresh_token varchar(512),
+  preferences jsonb,
   created_at timestamp not null default now(),
   updated_at timestamp,
   deleted_at timestamp
 );
 
-create table account (
+create table invite (
+  id serial primary key,
+  uuid uuid not null unique DEFAULT uuid_generate_v4(),
+  created_by bigint not null REFERENCES users(id),
+  contact_id bigint not null REFERENCES contact (id),
+  contact_method contact_method not null default ('email'),
+  token varchar(512) not null,
+  status request_status not null DEFAULT 'request',
+  message text,
+  user_id bigint REFERENCES users(id),
+  created_at timestamp not null default now(),
+  updated_at timestamp,
+  deleted_at timestamp
+);
+
+create table friend (
+  id serial primary key,
+  uuid uuid not null unique DEFAULT uuid_generate_v4(),
+  friend1 bigint not null REFERENCES users(id),
+  friend2 bigint not null REFERENCES users(id),
+  status request_status not null DEFAULT 'request',
+  created_at timestamp not null default now(),
+  updated_at timestamp,
+  deleted_at timestamp
+);
+
+create table message (
+  id serial primary key,
+  uuid uuid not null unique DEFAULT uuid_generate_v4(),
+  from bigint not null REFERENCES users(id),
+  to bigint not null REFERENCES users(id),
+  message text,
+  status request_status not null DEFAULT 'request',
+  created_at timestamp not null default now(),
+  updated_at timestamp,
+  deleted_at timestamp
+);
+
+create table org (
   id serial primary key,
   uuid uuid not null unique DEFAULT uuid_generate_v4(),
   created_by bigint not null REFERENCES users(id),
   name varchar(256) not null unique,
+  code char(3) unique,
   domain varchar(64),
   email_domain varchar(64),
   created_at timestamp not null default now(),
@@ -41,8 +88,8 @@ create table account (
   deleted_at timestamp
 );
 
-create table account_user (
-  account_id bigint REFERENCES account(id),
+create table org_user (
+  org_id bigint REFERENCES org(id),
   user_id bigint REFERENCES users(id),
   user_role user_role not null default 'viewer',
   created_at timestamp not null default now(),
@@ -66,6 +113,10 @@ create table contact (
   gender gender,
   notes text,
   groups int[],
+  favourite boolean not null default false,
+  clone_from_link_id REFERENCES contact(id),
+  master_lock_id REFERENCES contact(id),
+  shared_link_id REFERENCES contact(id),
   relation_data jsonb,
   other_data jsonb,
   tags int[],
@@ -121,7 +172,7 @@ insert into groups (created_by, name) VALUES (1,'friends');
 insert into groups (created_by, name) VALUES (1,'work');
 
 insert into contact (created_by, name) VALUES (1,'first contact');
-update account set contact_id=1 where username='guest';
+update org set contact_id=1 where username='guest';
 
 insert into groups (created_by, name) VALUES (1, 'custom');
 insert into contact (created_by, name, groups, relation_data, gender) VALUES (1,'second contact', '{1, 4}','[{"rid":"parent", "cid": "1"}]', 'female');

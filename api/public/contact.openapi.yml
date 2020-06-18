@@ -6,7 +6,7 @@ info:
 tags:
   - name: "ping"
   - name: "user"
-  - name: "account"
+  - name: "organisation"
   - name: "contact"
   - name: "address"
   - name: "group"
@@ -207,7 +207,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/contactResponse"
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -312,6 +312,10 @@ paths:
       responses:
         200:
           description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -442,7 +446,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/addressResponse"
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -547,6 +551,10 @@ paths:
       responses:
         200:
           description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -596,7 +604,7 @@ paths:
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
 
-  /account:
+  /org:
     options:
       tags:
         - "CORS"
@@ -629,17 +637,17 @@ paths:
         passthroughBehavior: when_no_match
     get:
       tags:
-        - "account"
-      operationId: ListAccounts
+        - "organisation"
+      operationId: ListOrganisations
       description: |
-        List all accounts in the database
+        List all organisations in the database
       responses:
         200:
           description: success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/accountList"
+                $ref: "#/components/schemas/organisationList"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -662,22 +670,22 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
     post:
       tags:
-        - "account"
-      operationId: CreateAccount
+        - "organisation"
+      operationId: CreateOrganisation
       description: |
-        Creates a new Account in the Database
+        Creates a new Organisation in the Database
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/account"
+              $ref: "#/components/schemas/organisation"
       responses:
         200:
           description: success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/accountResponse"
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -698,11 +706,11 @@ paths:
         type: AWS_PROXY
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
-  /account/{id}:
+  /org/{id}:
     parameters:
       - in: path
         name: id
-        description: The id of the account
+        description: The id of the organisation
         schema:
           $ref: "#/components/schemas/entityId"
         required: true
@@ -738,17 +746,17 @@ paths:
         passthroughBehavior: when_no_match
     get:
       tags:
-        - "account"
-      operationId: GetAccount
+        - "organisation"
+      operationId: GetOrganisation
       description: |
-        Get the specified account
+        Get the specified organisation
       responses:
         200:
           description: success
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/account"
+                $ref: "#/components/schemas/organisation"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -770,18 +778,22 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
     put:
       tags:
-        - "account"
-      operationId: UpdateAccount
+        - "organisation"
+      operationId: UpdateOrganisation
       description: |
-        Update the specified account
+        Update the specified organisation
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/account"
+              $ref: "#/components/schemas/organisation"
       responses:
         200:
           description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -804,10 +816,10 @@ paths:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
     delete:
       tags:
-        - "account"
-      operationId: DeleteAccount
+        - "organisation"
+      operationId: DeleteOrganisation
       description: |
-        Delete a account
+        Delete a organisation
       responses:
         200:
           description: success
@@ -912,7 +924,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/tagResponse"
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -1017,6 +1029,10 @@ paths:
       responses:
         200:
           description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -1147,7 +1163,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/groupResponse"
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -1252,6 +1268,10 @@ paths:
       responses:
         200:
           description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/createResponse"
         400:
           description: The request couldn't be parsed or validated
           content:
@@ -1316,7 +1336,7 @@ components:
         identitySource: method.request.header.Authorization
         authorizerUri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/{{resolve:secretsmanager:${AuthSecretName}:SecretString:auth-arn}}/invocations
-          # Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AuthLambdaFunctionName}/invocations
+          # Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::OrganisationId}:function:${AuthLambdaFunctionName}/invocations
         authorizerResultTtlInSeconds: 0
   schemas:
     entityId:
@@ -1339,17 +1359,11 @@ components:
           description: the user uuid this JWT is associated with
         aud:
           type: object
-          description: the account this JWT is associated with
-          properties:
-            account:
-              type: object
-              properties:
-                uuid:
-                  type: string
-                role:
-                  type: string
-                domain:
-                  type: string
+          description: the organisation this JWT is associated with
+        role:
+          type: string
+        domain:
+          type: string
         exp:
           type: string
           description: the expiry of the JWT
@@ -1362,19 +1376,19 @@ components:
           type: boolean
     userLogin:
       type: object
-      description: Information required to create a new account
+      description: Information required to create a new user
       required:
         - username
         - password
       properties:
         username:
           type: string
-          description: The username of the account
+          description: The username of the user
           nullable: false
           minLength: 5
         password:
           type: string
-          description: The password of the account
+          description: The password of the user
           nullable: false
           minLength: 5
     userResponse:
@@ -1392,8 +1406,13 @@ components:
         token:
           type: string
           description: The JWT token for this user
-        account:
-          $ref: "#/components/schemas/account"
+        org:
+          $ref: "#/components/schemas/organisation"
+    createResponse:
+      type: object
+      properties:
+        uuid:
+          $ref: "#/components/schemas/entityId"
 
     contact:
       type: object
@@ -1425,6 +1444,9 @@ components:
         notes:
           type: string
           description: Additional notes for this contact
+        favourite:
+          type: boolean
+          description: Toggle if this contact is a favourite
         address:
           $ref: "#/components/schemas/address"
         gender:
@@ -1447,11 +1469,6 @@ components:
             description: the IDs of the groups
       required:
         - name
-    contactResponse:
-      type: object
-      properties:
-        uuid:
-          $ref: "#/components/schemas/entityId"
     contactList:
       type: object
       properties:
@@ -1508,11 +1525,6 @@ components:
       description: A date in YYYY-MM-DD format.
       pattern: ^\d{4}-[01]\d-[0-3]\d$
       example: "2020-12-25"
-    addressResponse:
-      type: object
-      properties:
-        uuid:
-          $ref: "#/components/schemas/entityId"
     addressList:
       type: object
       properties:
@@ -1520,37 +1532,32 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/address"
-    account:
+    organisation:
       type: object
-      description: Structure of the account information
+      description: Structure of the organisation information
       required:
         - name
         - domain
       properties:
         name:
           type: string
-          description: The name of the account
+          description: The name of the organisation
           nullable: false
         domain:
           type: string
-          description: The domain name of the account
+          description: The domain name of the organisation
           nullable: false
         email_domain:
           type: string
-          description: The email domain of the account
+          description: The email domain of the organisation
           nullable: false
-    accountResponse:
-      type: object
-      properties:
-        uuid:
-          $ref: "#/components/schemas/entityId"
-    accountList:
+    organisationList:
       type: object
       properties:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/account"
+            $ref: "#/components/schemas/organisation"
     tag:
       type: object
       description: Structure of the tag
@@ -1560,11 +1567,6 @@ components:
         label:
           type: string
           description: The street address
-    tagResponse:
-      type: object
-      properties:
-        uuid:
-          $ref: "#/components/schemas/entityId"
     tagList:
       type: object
       properties:
@@ -1582,11 +1584,6 @@ components:
         label:
           type: string
           description: The label of the group
-    groupResponse:
-      type: object
-      properties:
-        uuid:
-          $ref: "#/components/schemas/entityId"
     groupList:
       type: object
       properties:

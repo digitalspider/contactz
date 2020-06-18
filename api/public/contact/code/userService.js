@@ -66,7 +66,7 @@ async function getUserByUsername(username) {
     return null;
   }
   const user = result.rows[0];
-  user.account = await getUserAccountAndRole(user.id);
+  user.org = await getUserOrgAndRole(user.id);
   return user;
 }
 
@@ -78,18 +78,18 @@ async function getUserByUuid(uuid) {
     return null;
   }
   const user = result.rows[0];
-  user.account = await getUserAccountAndRole(user.id);
+  user.org = await getUserOrgAndRole(user.id);
   return user;
 }
 
-async function getUserAccountAndRole(userId) {
-  const sqlQuery = `select a.*, user_id, user_role from account a, account_user u where u.account_id=a.id and u.user_id = $1`;
+async function getUserOrgAndRole(userId) {
+  const sqlQuery = `select o.*, user_id, user_role from org o, org_user u where u.org_id=o.id and u.user_id = $1`;
   const values = [userId];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
   if (result.rowCount === 0) {
     return undefined;
   }
-  return result.rows[0]; // TODO: User could potentially have multiple accounts
+  return result.rows[0]; // TODO: User could potentially have multiple organisations
 }
 
 function getClaims(user) {
@@ -98,10 +98,10 @@ function getClaims(user) {
     sub: user.uuid,
     exp: moment().unix() + jwtExpiryInSec,
   };
-  if (user.account) {
-    claims.aud = account.uuid;
-    claims.role = account.role;
-    claims.domain = account.domain;
+  if (user.org) {
+    claims.aud = user.org.uuid;
+    claims.role = user.org.user_role;
+    claims.domain = user.org.domain;
   }
   return claims;
 }

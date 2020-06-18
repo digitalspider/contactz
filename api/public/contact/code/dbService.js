@@ -10,7 +10,7 @@ const TABLE = {
   TAG: 'tag',
   CONTACT: 'contact',
   ADDRESS: 'address',
-  ACCOUNT: 'account',
+  ORG: 'org',
 };
 
 const COLUMN = {

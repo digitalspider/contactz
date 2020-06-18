@@ -18,7 +18,7 @@ exports.handler = async (event, _context) => {
     if (!pathContext || pathContext === 'ping') {
       return httpService.sendResponseOk({ success: true }, headers);
     }
-    if (!['user', 'contact', 'account', 'address', 'tag', 'group'].includes(pathContext)) {
+    if (!['user', 'contact', 'org', 'address', 'tag', 'group'].includes(pathContext)) {
       throw new Error(`Invalid request. Path is invalid. path=${event.path}`);
     }
     const tableName = RESERVED_TABLE_NAMES.includes(pathContext) ? pathContext + 's' : pathContext;
