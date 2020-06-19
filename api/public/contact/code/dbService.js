@@ -164,14 +164,41 @@ async function validate(tableName, userId, id) {
   }
 }
 
-async function list(tableName, userId, searchTerm) {
+async function count(tableName, userId, searchTerm) {
   const searchParam = searchTerm ? `%${searchTerm}%` : '%';
   const searchColumn = getSearchColumn(tableName);
   const createdByColumn = getCreatedByColumn(tableName);
-  const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and ${DELETED_AT_CLAUSE}`;
+  const sqlQuery = `select count(1) as count from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and ${DELETED_AT_CLAUSE}`;
   const values = [userId, searchParam];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows.map((row) => { delete row.id; delete row.password; return row });
+  if (results.rowCount>0) {
+    return Number(results.rows[0]['count']);
+  }
+  return 0;
+}
+
+async function list(tableName, userId, searchTerm, pageSize = 20, page = 0) {
+  const total = count(tableName, userId, searchTerm);
+  const offset = page * pageSize;
+  const limit = pageSize;
+  const pages = Math.ceil(total/pageSize);
+  let formattedResults;
+  if (total>0) {
+    const searchParam = searchTerm ? `%${searchTerm}%` : '%';
+    const searchColumn = getSearchColumn(tableName);
+    const createdByColumn = getCreatedByColumn(tableName);
+    const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and ${DELETED_AT_CLAUSE} offset ${offset} limit ${limit}`;
+    const values = [userId, searchParam];
+    const results = await executeSqlQuery(sqlQuery, values);
+    formattedResults = results.rows.map((row) => { delete row.id; delete row.password; return row });
+  }
+  return {
+    total,
+    page,
+    pageSize,
+    pages,
+    results: formattedResults,
+  }
 }
 
 async function create(tableName, userId, body) {
@@ -225,4 +252,4 @@ async function hardDelete(tableName, userId, id) {
   return executeSqlQuery(sqlQuery, values);
 }
 
-module.exports = { list, get, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
+module.exports = { count, list, get, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };

@@ -163,6 +163,25 @@ paths:
       operationId: ListContacts
       description: |
         List all contact in the database
+      parameters:
+        - in: query
+          name: q
+          description: The search query
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: THe page number to search for
+          schema:
+            type: number
+            minimum: 0
+        - in: query
+          name: pageSize
+          description: THe page size limit to search for
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
       responses:
         200:
           description: success
@@ -402,6 +421,25 @@ paths:
       operationId: ListAddresses
       description: |
         List all address in the database
+      parameters:
+        - in: query
+          name: q
+          description: The search query
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: THe page number to search for
+          schema:
+            type: number
+            minimum: 0
+        - in: query
+          name: pageSize
+          description: THe page size limit to search for
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
       responses:
         200:
           description: success
@@ -641,6 +679,25 @@ paths:
       operationId: ListOrganisations
       description: |
         List all organisations in the database
+      parameters:
+        - in: query
+          name: q
+          description: The search query
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: THe page number to search for
+          schema:
+            type: number
+            minimum: 0
+        - in: query
+          name: pageSize
+          description: THe page size limit to search for
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
       responses:
         200:
           description: success
@@ -880,6 +937,25 @@ paths:
       operationId: ListTags
       description: |
         List all tags in the database
+      parameters:
+        - in: query
+          name: q
+          description: The search query
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: THe page number to search for
+          schema:
+            type: number
+            minimum: 0
+        - in: query
+          name: pageSize
+          description: THe page size limit to search for
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
       responses:
         200:
           description: success
@@ -1119,6 +1195,25 @@ paths:
       operationId: ListGroup
       description: |
         List all groups in the database
+      parameters:
+        - in: query
+          name: q
+          description: The search query
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: THe page number to search for
+          schema:
+            type: number
+            minimum: 0
+        - in: query
+          name: pageSize
+          description: THe page size limit to search for
+          schema:
+            type: number
+            minimum: 1
+            maximum: 100
       responses:
         200:
           description: success
@@ -1472,6 +1567,14 @@ components:
     contactList:
       type: object
       properties:
+        total:
+          type: number
+        pageNo:
+          type: number
+        pageSize:
+          type: number
+        pages:
+          type: number
         results:
           type: array
           items:
@@ -1528,6 +1631,14 @@ components:
     addressList:
       type: object
       properties:
+        total:
+          type: number
+        pageNo:
+          type: number
+        pageSize:
+          type: number
+        pages:
+          type: number
         results:
           type: array
           items:
@@ -1554,6 +1665,14 @@ components:
     organisationList:
       type: object
       properties:
+        total:
+          type: number
+        pageNo:
+          type: number
+        pageSize:
+          type: number
+        pages:
+          type: number
         results:
           type: array
           items:
@@ -1570,6 +1689,14 @@ components:
     tagList:
       type: object
       properties:
+        total:
+          type: number
+        pageNo:
+          type: number
+        pageSize:
+          type: number
+        pages:
+          type: number
         results:
           type: array
           items:
@@ -1587,6 +1714,14 @@ components:
     groupList:
       type: object
       properties:
+        total:
+          type: number
+        pageNo:
+          type: number
+        pageSize:
+          type: number
+        pages:
+          type: number
         results:
           type: array
           items:
