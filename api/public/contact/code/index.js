@@ -1,6 +1,7 @@
 const httpService = require('./httpService');
 const userService = require('./userService');
 const dbService = require('./dbService');
+const mapService = require('./mapService');
 
 const RESERVED_TABLE_NAMES = ['group', 'role', 'user'];
 

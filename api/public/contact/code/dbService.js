@@ -171,7 +171,7 @@ async function count(tableName, userId, searchTerm) {
   const sqlQuery = `select count(1) as count from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and ${DELETED_AT_CLAUSE}`;
   const values = [userId, searchParam];
   const results = await executeSqlQuery(sqlQuery, values);
-  if (results.rowCount>0) {
+  if (results.rowCount > 0) {
     return Number(results.rows[0]['count']);
   }
   return 0;
@@ -181,9 +181,9 @@ async function list(tableName, userId, searchTerm, pageSize = 20, page = 0) {
   const total = await count(tableName, userId, searchTerm);
   const offset = page * pageSize;
   const limit = pageSize;
-  const pages = Math.ceil(total/pageSize);
+  const pages = Math.ceil(total / pageSize);
   let formattedResults = [];
-  if (total>0) {
+  if (total > 0) {
     const searchParam = searchTerm ? `%${searchTerm}%` : '%';
     const searchColumn = getSearchColumn(tableName);
     const createdByColumn = getCreatedByColumn(tableName);
@@ -208,6 +208,15 @@ async function create(tableName, userId, body) {
   const sqlQuery = `insert into ${tableName} (${insertData.columnNames}) VALUES (${insertData.params}) RETURNING ${uidColumn}`;
   const results = await executeSqlQuery(sqlQuery, insertData.values);
   return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
+}
+
+async function getById(tableName, userId, id) {
+  await validate(tableName, userId, id);
+  const createdByColumn = getCreatedByColumn(tableName);
+  const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and id = $2`;
+  const values = [userId, id];
+  const results = await executeSqlQuery(sqlQuery, values);
+  return results.rows.map((row) => { delete row.id; delete row.password; return row })[0];
 }
 
 async function get(tableName, userId, id) {
@@ -252,4 +261,4 @@ async function hardDelete(tableName, userId, id) {
   return executeSqlQuery(sqlQuery, values);
 }
 
-module.exports = { count, list, get, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
+module.exports = { count, list, get, getById, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
