@@ -216,7 +216,7 @@ async function getById(tableName, userId, id) {
   const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and id = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows.map((row) => { delete row.id; delete row.password; delete row.createdBy; return row })[0];
+  return results.rows.map((row) => { delete row.id; delete row.password; delete row[createdByColumn]; return row })[0];
 }
 
 async function getId(tableName, userId, id) {
@@ -236,7 +236,7 @@ async function get(tableName, userId, id) {
   const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows.map((row) => { delete row.id; delete row.password; delete row.createdBy; return row })[0];
+  return results.rows.map((row) => { delete row.id; delete row.password; delete row[createdByColumn]; return row })[0];
 }
 
 async function update(tableName, userId, id, body) {
