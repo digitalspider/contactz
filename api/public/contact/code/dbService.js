@@ -222,7 +222,8 @@ async function getById(tableName, userId, id) {
 async function getId(tableName, userId, id) {
   await validate(tableName, userId, id);
   const createdByColumn = getCreatedByColumn(tableName);
-  const sqlQuery = `select id from ${tableName} where ${createdByColumn} = $1 and id = $2`;
+  const uidColumn = getUidColumn(tableName);
+  const sqlQuery = `select id from ${tableName} where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
   return results.rows.map((row) => { delete row.password; return row })[0]['id'];
