@@ -58,10 +58,16 @@ exports.handler = async (event, _context) => {
     switch (method) {
       case 'GET':
         if (!id) {
-          const searchTerm = event.queryStringParameters ? event.queryStringParameters.q : null;
-          const pageSize = event.queryStringParameters ? event.queryStringParameters.pageSize : null;
-          const page = event.queryStringParameters ? event.queryStringParameters.page : null;
-          result = await dbService.list(tableName, userId, searchTerm, pageSize, page);
+          let searchTerm;
+          let limit;
+          let pageNo;
+          if (event.queryStringParameters) {
+            const { q, page, pageSize } = event.queryStringParameters;
+            searchTerm = q || undefined;
+            limit = !isNaN(pageSize) ? Number(pageSize) : undefined;
+            pageNo = !isNaN(page) ? Number(page) : undefined;
+          }
+          result = await dbService.list(tableName, userId, searchTerm, limit, pageNo);
         } else {
           result = await dbService.get(tableName, userId, id);
         }
