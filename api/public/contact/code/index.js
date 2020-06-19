@@ -69,19 +69,15 @@ exports.handler = async (event, _context) => {
             pageNo = !isNaN(page) ? Number(page) : undefined;
           }
           result = await dbService.list(tableName, userId, searchTerm, limit, pageNo);
+          result.results && result.results.map(data => mapService.dbToApi(tableName, userId, data));
         } else {
           result = await dbService.get(tableName, userId, id);
           await mapService.dbToApi(tableName, userId, result);
         }
         break;
       case 'POST':
-        console.log(body);
         await mapService.apiToDb(tableName, userId, body);
-        console.log(body);
         result = await dbService.create(tableName, userId, body);
-        console.log(result);
-        await mapService.dbToApi(tableName, userId, result);
-        console.log(result);
         break;
       case 'PUT':
         if (!id) {
@@ -89,7 +85,6 @@ exports.handler = async (event, _context) => {
         }
         await mapService.apiToDb(tableName, userId, body);
         result = await dbService.update(tableName, userId, id, body);
-        await mapService.dbToApi(tableName, userId, result);
         break;
       case 'DELETE':
         if (!id) {

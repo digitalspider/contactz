@@ -6,9 +6,8 @@ const cacheContact = {};
 
 async function dbToApi(tableName, userId, body) {
   if ([TABLE.ADDRESS].includes(tableName)) {
-    const { contact_id } = body;
-    let contactUuid = Object.values(cacheContact).find(v => v === contact_id);
-    console.log(contactUuid);
+    const contact_id = Number(body.contact_id);
+    let contactUuid = Object.keys(cacheContact).find(key => cacheContact[key] === contact_id);
     if (!contactUuid) {
       contact = await dbService.getById(TABLE.CONTACT, userId, contact_id);
       if (!contact) {
