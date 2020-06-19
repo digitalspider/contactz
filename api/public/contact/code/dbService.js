@@ -219,6 +219,15 @@ async function getById(tableName, userId, id) {
   return results.rows.map((row) => { delete row.id; delete row.password; return row })[0];
 }
 
+async function getId(tableName, userId, id) {
+  await validate(tableName, userId, id);
+  const createdByColumn = getCreatedByColumn(tableName);
+  const sqlQuery = `select id from ${tableName} where ${createdByColumn} = $1 and id = $2`;
+  const values = [userId, id];
+  const results = await executeSqlQuery(sqlQuery, values);
+  return results.rows.map((row) => { delete row.password; return row })[0]['id'];
+}
+
 async function get(tableName, userId, id) {
   await validate(tableName, userId, id);
   const createdByColumn = getCreatedByColumn(tableName);
@@ -261,4 +270,4 @@ async function hardDelete(tableName, userId, id) {
   return executeSqlQuery(sqlQuery, values);
 }
 
-module.exports = { count, list, get, getById, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
+module.exports = { count, list, get, getId, getById, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };

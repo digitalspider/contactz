@@ -75,9 +75,13 @@ exports.handler = async (event, _context) => {
         }
         break;
       case 'POST':
+        console.log(body);
         await mapService.apiToDb(tableName, userId, body);
+        console.log(body);
         result = await dbService.create(tableName, userId, body);
+        console.log(result);
         await mapService.dbToApi(tableName, userId, result);
+        console.log(result);
         break;
       case 'PUT':
         if (!id) {
