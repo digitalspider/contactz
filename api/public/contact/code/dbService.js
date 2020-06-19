@@ -190,7 +190,7 @@ async function list(tableName, userId, searchTerm, pageSize = 20, page = 0) {
     const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and ${DELETED_AT_CLAUSE} offset ${offset} limit ${limit}`;
     const values = [userId, searchParam];
     const results = await executeSqlQuery(sqlQuery, values);
-    formattedResults = results.rows.map((row) => { delete row.id; delete row.password; return row });
+    formattedResults = results.rows.map((row) => { delete row.id; delete row.password; delete row[createdByColumn]; return row });
   }
   return {
     total,
