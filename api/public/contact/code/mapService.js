@@ -4,13 +4,13 @@ const { TABLE } = dbService;
 
 const cacheContact = {};
 
-function dbToApi(tableName, userId, body) {
+async function dbToApi(tableName, userId, body) {
   if ([TABLE.ADDRESS].includes(tableName)) {
     const { contact_id } = body;
     let contact_uuid = Object.values(cacheContact).find(v => v === contact_id);
     console.log(contact_uuid);
     if (!contact_uuid) {
-      contact = dbService.getById(TABLE.CONTACT, userId, contact_id);
+      contact = await dbService.getById(TABLE.CONTACT, userId, contact_id);
       if (!contact) {
         throw new Error(`Invalid contact_id does not exist. contact_id=${contact_id}`);
       }
@@ -22,12 +22,12 @@ function dbToApi(tableName, userId, body) {
   return body;
 }
 
-function apiToDb(tableName, userId, body) {
+async function apiToDb(tableName, userId, body) {
   if ([TABLE.ADDRESS].includes(tableName)) {
     const { contact_id } = body;
     let contact = cacheContact[contact_id];
     if (!contact) {
-      contact = dbService.get(TABLE.CONTACT, userId, contact_id);
+      contact = await dbService.get(TABLE.CONTACT, userId, contact_id);
       if (!contact) {
         throw new Error(`Invalid contact_id does not exist. contact_id=${contact_id}`);
       }
