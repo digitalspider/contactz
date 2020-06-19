@@ -70,16 +70,21 @@ exports.handler = async (event, _context) => {
           result = await dbService.list(tableName, userId, searchTerm, limit, pageNo);
         } else {
           result = await dbService.get(tableName, userId, id);
+          mapService.dbToApi(tableName, userId, result);
         }
         break;
       case 'POST':
+        mapService.apiToDb(tableName, userId, body);
         result = await dbService.create(tableName, userId, body);
+        mapService.dbToApi(tableName, userId, result);
         break;
       case 'PUT':
         if (!id) {
           throw new Error('Invalid request, no ID provided');
         }
+        mapService.apiToDb(tableName, userId, body);
         result = await dbService.update(tableName, userId, id, body);
+        mapService.dbToApi(tableName, userId, result);
         break;
       case 'DELETE':
         if (!id) {

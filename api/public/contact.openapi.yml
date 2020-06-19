@@ -1589,11 +1589,13 @@ components:
         - state
         - postcode
       properties:
-        contact_id:
+        uuid:
           $ref: "#/components/schemas/entityId"
+        contact_id:
+          type: string
         name:
           type: string
-          description: The name/label for this address
+          description: The name for this address
         street:
           type: string
           description: The street address
@@ -1610,7 +1612,7 @@ components:
         postcode:
           type: string
           description: The four digit (AU) postcode
-          pattern: "^[a-zA-Z0-9|-| ]{4,10}$"
+          pattern: "^[0-9]{4}$"
           example: "2145"
         country:
           type: string
@@ -1626,7 +1628,7 @@ components:
     dateFormat:
       type: string
       description: A date in YYYY-MM-DD format.
-      pattern: ^\d{4}-[01]\d-[0-3]\d$
+      pattern: ^\d{4}-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])$
       example: "2020-12-25"
     addressList:
       type: object
@@ -1681,9 +1683,9 @@ components:
       type: object
       description: Structure of the tag
       required:
-        - label
+        - name
       properties:
-        label:
+        name:
           type: string
           description: The street address
     tagList:
@@ -1706,11 +1708,11 @@ components:
       type: object
       description: Structure of the group
       required:
-        - label
+        - name
       properties:
-        label:
+        name:
           type: string
-          description: The label of the group
+          description: The name of the group
     groupList:
       type: object
       properties:
