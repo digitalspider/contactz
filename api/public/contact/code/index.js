@@ -58,8 +58,10 @@ exports.handler = async (event, _context) => {
     switch (method) {
       case 'GET':
         if (!id) {
-          const searchTerm = event.pathParameters ? event.pathParameters.q : null;
-          result = await dbService.list(tableName, userId, searchTerm);
+          const searchTerm = event.queryStringParameters ? event.queryStringParameters.q : null;
+          const pageSize = event.queryStringParameters ? event.queryStringParameters.pageSize : null;
+          const page = event.queryStringParameters ? event.queryStringParameters.page : null;
+          result = await dbService.list(tableName, userId, searchTerm, pageSize, page);
         } else {
           result = await dbService.get(tableName, userId, id);
         }

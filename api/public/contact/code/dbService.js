@@ -178,11 +178,11 @@ async function count(tableName, userId, searchTerm) {
 }
 
 async function list(tableName, userId, searchTerm, pageSize = 20, page = 0) {
-  const total = count(tableName, userId, searchTerm);
+  const total = await count(tableName, userId, searchTerm);
   const offset = page * pageSize;
   const limit = pageSize;
   const pages = Math.ceil(total/pageSize);
-  let formattedResults;
+  let formattedResults = [];
   if (total>0) {
     const searchParam = searchTerm ? `%${searchTerm}%` : '%';
     const searchColumn = getSearchColumn(tableName);
