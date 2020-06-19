@@ -3,7 +3,6 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 alter table contact drop constraint if exists fk_contact_address;
 drop table if exists address;
 alter table users drop constraint if exists fk_user_contact;
-drop table if exists account_user;
 drop table if exists org_user;
 drop table if exists invite;
 drop table if exists friend;
@@ -11,7 +10,6 @@ drop table if exists message;
 drop table if exists tag;
 drop table if exists groups;
 drop table if exists contact;
-drop table if exists account;
 drop table if exists org;
 drop table if exists users;
 drop type if exists user_role;
@@ -56,8 +54,8 @@ create table friend (
 create table message (
   id serial primary key,
   uuid uuid not null unique DEFAULT uuid_generate_v4(),
-  from bigint not null REFERENCES users(id),
-  to bigint not null REFERENCES users(id),
+  from_id bigint not null REFERENCES users(id),
+  to_id bigint not null REFERENCES users(id),
   message text,
   status request_status not null DEFAULT 'request',
   created_at timestamp not null default now(),
@@ -104,16 +102,19 @@ create table contact (
   notes text,
   groups int[],
   favourite boolean not null default false,
-  clone_from_link_id REFERENCES contact(id),
-  master_lock_id REFERENCES contact(id),
-  shared_link_id REFERENCES contact(id),
+  clone_from_link_id bigint,
+  master_lock_id bigint,
+  shared_link_id bigint,
   relation_data jsonb,
   other_data jsonb,
   tags int[],
   sort_order int not null default 99,
   created_at timestamp not null default now(),
   updated_at timestamp,
-  deleted_at timestamp
+  deleted_at timestamp,
+  foreign key (clone_from_link_id) references contact(id),
+  foreign key (master_lock_id) references contact(id),
+  foreign key (shared_link_id) references contact(id)
 );
 
 create table invite (
