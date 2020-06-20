@@ -1,4 +1,4 @@
-const cache = {};
+const _cache = {};
 
 const CONTEXT = {
   CONTACT_UUID_ID: 'contact-uuid-id',
@@ -6,33 +6,33 @@ const CONTEXT = {
 };
 
 function init(context) {
-  if (!cache[context]) {
-    cache[context] = {};
+  if (!_cache[context]) {
+    _cache[context] = {};
   }
 }
 
 function cache(context, key, value) {
   init(context);
-  return cache[context][key] = value;
+  return _cache[context][key] = value;
 }
 
 function invalidate(context, key) {
   if (key) {
     init(context);
-    cache[context][key] = undefined;
+    _cache[context][key] = undefined;
   } else {
-    cache[context] = {}
+    _cache[context] = {}
   }
 }
 
 function fromCache(context, key) {
   init(context);
-  return cache[context][key];
+  return _cache[context][key];
 }
 
 function getKeyByValue(context, value) {
   init(context);
-  return Object.keys(cache[context]).find(key => cache[context][key] === value);
+  return Object.keys(_cache[context]).find(key => _cache[context][key] === value);
 }
 
 module.exports = { CONTEXT, cache, fromCache, getKeyByValue, invalidate };

@@ -242,7 +242,7 @@ async function get(tableName, userId, id) {
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
   result = results.rows.map((row) => { delete row.id; delete row.password; delete row[createdByColumn]; return row })[0];
-  cacheService.cache(cacheContext, id, result);
+  cacheService.cache(getCacheContext(tableName, userId), id, result);
   return result;
 }
 
