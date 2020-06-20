@@ -15,14 +15,18 @@ async function route(event) {
   const pathContext = pathParts.length > 1 ? pathParts[1] : null;
   console.log(`pathContext=${pathContext}`);
   if (!pathContext) {
-    return { success: true };
+    return { 'success': true };
   }
   switch (pathContext) {
     case 'ping':
-      return { success: true };
+      return { 'success': true };
     case 'user':
       return routeUser(event);
-    case 'contact', 'org', 'address', 'tag', 'group':
+    case 'contact':
+    case 'org':
+    case 'address':
+    case 'tag':
+    case 'group':
       return crudFunction(event);
     default:
       throw new Error(`Invalid request. Path is invalid. path=${event.path}`);
@@ -45,6 +49,11 @@ async function routeUser(event) {
       return userService.register(body);
     case 'login':
       return userService.login(body);
+    case 'logout':
+      const userUuid = event.requestContext.authorizer && event.requestContext.authorizer.principalId;
+      return userService.logout(userUuid);
+    case 'refresh':
+      return userService.refreshToken(body);
     default:
       throw new Error(`Invalid request. Unknown userAction: ${userAction}`);
   }

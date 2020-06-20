@@ -124,6 +124,24 @@ Resources:
               Ref: PublicApi
             Stage:
               Ref: StageName
+        UserLogout:
+          Type: Api
+          Properties:
+            Path: /user/logout
+            Method: post
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        UserRefreshToken:
+          Type: Api
+          Properties:
+            Path: /user/refresh
+            Method: post
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
         ListContact:
           Type: Api
           Properties:

@@ -125,6 +125,64 @@ paths:
         type: AWS_PROXY
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /user/logout:
+    post:
+      tags:
+        - "user"
+      operationId: LogoutUser
+      description: |
+        Logout a user
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/pingResponse"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /user/refresh:
+    post:
+      tags:
+        - "user"
+      operationId: RefreshTokenUser
+      description: |
+        Refresh token for a user
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userResponse"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
 
   /contact:
     options:
@@ -1500,7 +1558,10 @@ components:
           description: The uuid of the associated contact
         token:
           type: string
-          description: The JWT token for this user
+          description: The JWT token for this user, valid for 4 hours
+        refreshToken:
+          type: string
+          description: The JWT refresh token for this user, valid for 14 days
         org:
           $ref: "#/components/schemas/organisation"
     createResponse:

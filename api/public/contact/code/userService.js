@@ -4,7 +4,8 @@ const dbService = require('./dbService');
 const httpService = require('./httpService');
 
 const issuer = 'https://api.contactz.com.au';
-const jwtExpiryInSec = 4 * 60 * 60; // 4h
+const JWT_TOKEN_EXPIRY_IN_SEC = 4 * 60 * 60; // 4h
+const JWT_REFRESH_TOKEN_EXPIRY_IN_SEC = 14 * 24 * 60 * 60; // 14d
 const algorithm = 'HS256';
 const { JWT_SECRET } = process.env;
 
@@ -28,17 +29,51 @@ async function login(loginBody) {
   console.log(`claims=${JSON.stringify(claims)}`);
   const token = jwt.sign(claims, JWT_SECRET, { algorithm });
   console.log(`token=${JSON.stringify(token)}`);
-  await updateUserToken(user, token);
+  claims.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
+  const refreshToken = jwt.sign(claims, JWT_SECRET, { algorithm });
+  console.log(`refreshToken=${JSON.stringify(refreshToken)}`);
+  await updateUserToken(user, token, refreshToken);
   delete user.id;
   delete user.password;
   console.log(`user=${JSON.stringify(user)}`);
   return user;
 }
 
-async function updateUserToken(user, token) {
+async function logout(userUuid) {
+  const user = await userService.getUserByUuid(userUuid);
+  if (!user) {
+    throw new Error('Authorization failed. No user available in request');
+  }
+  await updateUserToken(user, null, null);
+  console.log(`Logged out user=${userUuid}`);
+  return { 'success': true };
+}
+
+async function refreshToken(loginBody) {
+  const user = await handleLogin(loginBody);
+  console.log(`user=${JSON.stringify(user)}`);
+  if (!user) {
+    throw new httpService.BadRequestError(`Invalid login credentials`);
+  }
+  const claims = getClaims(user);
+  console.log(`claims=${JSON.stringify(claims)}`);
+  const token = jwt.sign(claims, JWT_SECRET, { algorithm });
+  console.log(`token=${JSON.stringify(token)}`);
+  claims.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
+  const refreshToken = jwt.sign(claims, JWT_SECRET, { algorithm });
+  console.log(`refreshToken=${JSON.stringify(refreshToken)}`);
+  await updateUserToken(user, token, refreshToken);
+  delete user.id;
+  delete user.password;
+  console.log(`user=${JSON.stringify(user)}`);
+  return user;
+}
+
+async function updateUserToken(user, token, refreshToken) {
   user.token = token;
-  const updateTokenSqlQuery = `update ${dbService.TABLE.USERS} set token = $1 where id = $2`;
-  const updateTokenValues = [token, user.id];
+  user.refresh_token = refreshToken;
+  const updateTokenSqlQuery = `update ${dbService.TABLE.USERS} set token = $1, refresh_token = $2 where id = $3`;
+  const updateTokenValues = [token, refreshToken, user.id];
   await dbService.executeSqlQuery(updateTokenSqlQuery, updateTokenValues);
 }
 
@@ -96,7 +131,7 @@ function getClaims(user) {
   const claims = {
     issuer,
     sub: user.uuid,
-    exp: moment().unix() + jwtExpiryInSec,
+    exp: moment().unix() + JWT_TOKEN_EXPIRY_IN_SEC,
   };
   if (user.org) {
     claims.aud = user.org.uuid;
@@ -106,4 +141,4 @@ function getClaims(user) {
   return claims;
 }
 
-module.exports = { register, login, getUserByUuid, getUserByUsername };
+module.exports = { register, login, logout, refreshToken, getUserByUuid, getUserByUsername };
