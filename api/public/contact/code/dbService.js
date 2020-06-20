@@ -186,12 +186,14 @@ async function list(tableName, userId, searchTerm, pageSize = 20, page = 0) {
   let formattedResults = [];
   if (total > 0) {
     const searchParam = searchTerm ? `%${searchTerm}%` : '%';
+    const uidColumn = getUidColumn(tableName);
     const searchColumn = getSearchColumn(tableName);
     const createdByColumn = getCreatedByColumn(tableName);
     const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and ${DELETED_AT_CLAUSE} offset ${offset} limit ${limit}`;
     const values = [userId, searchParam];
     const results = await executeSqlQuery(sqlQuery, values);
-    formattedResults = results.rows.map((row) => { delete row.id; delete row.password; delete row[createdByColumn]; return row });
+    formattedResults = results.rows.map((row) => cleanseRow(row));
+    formattedResults.map((data) => cacheService.cache(getCacheContext(tableName, userId), data[uidColumn], data));
   }
   return {
     total,
@@ -202,6 +204,13 @@ async function list(tableName, userId, searchTerm, pageSize = 20, page = 0) {
   }
 }
 
+function cleanseRow(row) {
+  delete row.id;
+  delete row.password;
+  delete row[COLUMN.CREATED_BY];
+  delete row[COLUMN.DELETED_AT];
+  return row;
+}
 async function create(tableName, userId, body) {
   const uidColumn = getUidColumn(tableName);
   const insertData = await getInsertData(userId, tableName, body);
@@ -217,7 +226,7 @@ async function getById(tableName, userId, id) {
   const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and id = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows.map((row) => { delete row.id; delete row.password; delete row[createdByColumn]; return row })[0];
+  return results.rows.map((row) => cleanseRow(row))[0];
 }
 
 async function getId(tableName, userId, id) {
@@ -241,7 +250,7 @@ async function get(tableName, userId, id) {
   const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
-  result = results.rows.map((row) => { delete row.id; delete row.password; delete row[createdByColumn]; return row })[0];
+  result = results.rows.map((row) => cleanseRow(row))[0];
   cacheService.cache(getCacheContext(tableName, userId), id, result);
   return result;
 }
