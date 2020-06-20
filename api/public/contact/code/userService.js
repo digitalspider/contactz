@@ -50,7 +50,7 @@ async function logout(userUuid) {
 }
 
 async function refreshToken(headers) {
-  const { token, refreshToken } = headers;
+  const { refreshToken } = headers;
   let jwtPayload;
   try {
     jwtPayload = jwt.verify(refreshToken, JWT_SECRET, { algorithm: ['HS256'] });
@@ -67,9 +67,9 @@ async function refreshToken(headers) {
   const token = jwt.sign(jwtPayload, JWT_SECRET, { algorithm });
   console.log(`token=${JSON.stringify(token)}`);
   jwtPayload.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
-  const refreshToken = jwt.sign(claims, JWT_SECRET, { algorithm });
-  console.log(`refreshToken=${JSON.stringify(refreshToken)}`);
-  await updateUserToken(user, token, refreshToken);
+  const newRefreshToken = jwt.sign(jwtPayload, JWT_SECRET, { algorithm });
+  console.log(`refreshToken=${JSON.stringify(newRefreshToken)}`);
+  await updateUserToken(user, token, newRefreshToken);
   delete user.id;
   delete user.password;
   console.log(`user=${JSON.stringify(user)}`);
