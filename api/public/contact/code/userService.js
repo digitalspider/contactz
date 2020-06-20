@@ -29,9 +29,12 @@ async function login(loginBody) {
   console.log(`claims=${JSON.stringify(claims)}`);
   const token = jwt.sign(claims, JWT_SECRET, { algorithm });
   console.log(`token=${JSON.stringify(token)}`);
-  claims.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
-  const refreshToken = jwt.sign(claims, JWT_SECRET, { algorithm });
-  console.log(`refreshToken=${JSON.stringify(refreshToken)}`);
+  let refreshToken = null;
+  if (loginBody.refresh) {
+    claims.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
+    refreshToken = jwt.sign(claims, JWT_SECRET, { algorithm });
+    console.log(`refreshToken=${JSON.stringify(refreshToken)}`);
+  }
   await updateUserToken(user, token, refreshToken);
   delete user.id;
   delete user.password;
@@ -85,7 +88,7 @@ async function updateUserToken(user, token, refreshToken) {
 }
 
 async function handleLogin({ username, password }) {
-  const sqlQuery = `select id, uuid, token from ${dbService.TABLE.USERS} where username = $1 and password = md5($2)`;
+  const sqlQuery = `select id, uuid from ${dbService.TABLE.USERS} where username = $1 and password = md5($2)`;
   const values = [username, password];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
   if (result.rowCount === 0) {
@@ -113,7 +116,7 @@ async function getUserByUsername(username) {
 }
 
 async function getUserByUuid(uuid) {
-  const sqlQuery = `select id, uuid, username, contact_id, token, refresh_token from ${dbService.TABLE.USERS} where uuid = $1`;
+  const sqlQuery = `select id, uuid, username, contact_id from ${dbService.TABLE.USERS} where uuid = $1`;
   const values = [uuid];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
   if (result.rowCount === 0) {
