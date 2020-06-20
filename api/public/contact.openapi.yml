@@ -1546,6 +1546,9 @@ components:
           description: The password of the user
           nullable: false
           minLength: 5
+        refresh:
+          type: boolean
+          description: If true will provide a long lived refresh token
     userResponse:
       type: object
       description: Structure of the user information

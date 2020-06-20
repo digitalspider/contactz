@@ -56,7 +56,7 @@ async function refreshToken(headers) {
   const { refreshToken } = headers;
   let jwtPayload;
   try {
-    jwtPayload = jwt.verify(refreshToken, JWT_SECRET, { algorithm: ['HS256'] });
+    jwtPayload = jwt.verify(refreshToken, JWT_SECRET, { algorithm });
   } catch (err) {
     throw new Error('Authorization failed. refreshToken is invalid. Please log in');
   }
