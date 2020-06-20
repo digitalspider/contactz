@@ -53,7 +53,7 @@ async function routeUser(event) {
       const userUuid = event.requestContext.authorizer && event.requestContext.authorizer.principalId;
       return userService.logout(userUuid);
     case 'refresh':
-      return userService.refreshToken(body);
+      return userService.refreshToken(event.headers);
     default:
       throw new Error(`Invalid request. Unknown userAction: ${userAction}`);
   }

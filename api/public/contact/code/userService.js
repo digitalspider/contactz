@@ -40,7 +40,7 @@ async function login(loginBody) {
 }
 
 async function logout(userUuid) {
-  const user = await userService.getUserByUuid(userUuid);
+  const user = await getUserByUuid(userUuid);
   if (!user) {
     throw new Error('Authorization failed. No user available in request');
   }
@@ -49,17 +49,24 @@ async function logout(userUuid) {
   return { 'success': true };
 }
 
-async function refreshToken(loginBody) {
-  const user = await handleLogin(loginBody);
-  console.log(`user=${JSON.stringify(user)}`);
-  if (!user) {
-    throw new httpService.BadRequestError(`Invalid login credentials`);
+async function refreshToken(headers) {
+  const { token, refreshToken } = headers;
+  let jwtPayload;
+  try {
+    jwtPayload = jwt.verify(refreshToken, JWT_SECRET, { algorithm: ['HS256'] });
+  } catch (err) {
+    throw new Error('Authorization failed. refreshToken is invalid. Please log in');
   }
-  const claims = getClaims(user);
-  console.log(`claims=${JSON.stringify(claims)}`);
-  const token = jwt.sign(claims, JWT_SECRET, { algorithm });
+  const userUuid = jwtPayload.sub;
+  const user = await getUserByUuid(userUuid);
+  if (!user) {
+    throw new Error('Authorization failed. No user available in refreshToken');
+  }
+  jwtPayload.exp = moment().unix() + JWT_TOKEN_EXPIRY_IN_SEC;
+  console.log(`claims=${JSON.stringify(jwtPayload)}`);
+  const token = jwt.sign(jwtPayload, JWT_SECRET, { algorithm });
   console.log(`token=${JSON.stringify(token)}`);
-  claims.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
+  jwtPayload.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
   const refreshToken = jwt.sign(claims, JWT_SECRET, { algorithm });
   console.log(`refreshToken=${JSON.stringify(refreshToken)}`);
   await updateUserToken(user, token, refreshToken);
@@ -106,7 +113,7 @@ async function getUserByUsername(username) {
 }
 
 async function getUserByUuid(uuid) {
-  const sqlQuery = `select id, uuid, username, contact_id, token from ${dbService.TABLE.USERS} where uuid = $1`;
+  const sqlQuery = `select id, uuid, username, contact_id, token, refresh_token from ${dbService.TABLE.USERS} where uuid = $1`;
   const values = [uuid];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
   if (result.rowCount === 0) {

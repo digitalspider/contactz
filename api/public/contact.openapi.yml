@@ -145,6 +145,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/apiUnauthorized"
+      security:
+        - user-authorizer: []
       x-amazon-apigateway-request-validator: all
       x-amazon-apigateway-integration:
         httpMethod: POST
