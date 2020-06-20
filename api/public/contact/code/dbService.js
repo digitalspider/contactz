@@ -1,6 +1,7 @@
 const pg = require('pg');
 const httpService = require('./httpService');
 const secretService = require('./secretService');
+const cacheService = require('./cacheService');
 const constants = require('./constants');
 const httpStatus = constants.HTTP_STATUS;
 
@@ -231,16 +232,23 @@ async function getId(tableName, userId, id) {
 
 async function get(tableName, userId, id) {
   await validate(tableName, userId, id);
+  let result = cacheService.fromCache(getCacheContext(tableName, userId), id);
+  if (result) {
+    return result;
+  }
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
   const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows.map((row) => { delete row.id; delete row.password; delete row[createdByColumn]; return row })[0];
+  result = results.rows.map((row) => { delete row.id; delete row.password; delete row[createdByColumn]; return row })[0];
+  cacheService.cache(cacheContext, id, result);
+  return result;
 }
 
 async function update(tableName, userId, id, body) {
   await validate(tableName, userId, id);
+  cacheService.invalidate(getCacheContext(tableName, userId), id);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
   const updateData = await getUpdateData(userId, tableName, body);
@@ -254,6 +262,7 @@ async function update(tableName, userId, id, body) {
 
 async function softDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
+  cacheService.invalidate(getCacheContext(tableName, userId), id);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
   const sqlQuery = `update ${tableName} set ${COLUMN.DELETED_AT} = now() where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING ${uidColumn}`;
@@ -264,11 +273,16 @@ async function softDelete(tableName, userId, id) {
 
 async function hardDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
+  cacheService.invalidate(getCacheContext(tableName, userId), id);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
   const sqlQuery = `delete from ${tableName} where ${createdByColumn} = $1 and ${uidColumn} = $2`;
   const values = [userId, id];
   return executeSqlQuery(sqlQuery, values);
+}
+
+function getCacheContext(tableName, userId) {
+  return `${userId}-get-${tableName}`;
 }
 
 module.exports = { count, list, get, getId, getById, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
