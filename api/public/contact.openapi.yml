@@ -331,6 +331,7 @@ paths:
                 $ref: "#/components/schemas/apiUnauthorized"
       security:
         - user-authorizer: []
+      x-amazon-apigateway-request-validator: all
       x-amazon-apigateway-integration:
         httpMethod: GET
         type: AWS_PROXY
