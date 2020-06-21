@@ -63,9 +63,11 @@ async function apiToDbAddress(userId, body) {
 
 async function dbToApiContact(userId, id, body) {
   const contactId = await dbService.getId(TABLE.CONTACT, userId, id || body.contact_id);
-  const contacts = await dbService.list(TABLE.ADDRESS, userId, 'contact_id', contactId);
-  // TODO: Wont show more than 20 addresses?
-  body.addresses = contacts.results;
+  if (contactId) {
+    const contacts = await dbService.list(TABLE.ADDRESS, userId, 'contact_id', contactId);
+    // TODO: Wont show more than 20 addresses?
+    body.addresses = contacts.results;
+  }
   return body;
 }
 
