@@ -165,12 +165,18 @@ async function validate(tableName, userId, id) {
   }
 }
 
-async function count(tableName, userId, searchTerm) {
-  const searchParam = searchTerm ? `%${searchTerm}%` : '%';
-  const searchColumn = getSearchColumn(tableName);
+async function count(tableName, userId, searchColumn, searchTerm, exactSearch = true) {
+  let searchClause = '';
+  let searchParam = '';
+  if (searchTerm) {
+    searchParam = exactSearch ? searchTerm : `%${searchTerm}%`;
+    searchColumn = searchColumn || getSearchColumn(tableName);
+    const searchOperation = exactSearch ? '=' : 'like';
+    searchClause = `and ${searchColumn} ${searchOperation} $2`;
+  }
   const createdByColumn = getCreatedByColumn(tableName);
-  const sqlQuery = `select count(1) as count from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and ${DELETED_AT_CLAUSE}`;
-  const values = [userId, searchParam];
+  const sqlQuery = `select count(1) as count from ${tableName} where ${createdByColumn} = $1 ${searchClause} and ${DELETED_AT_CLAUSE}`;
+  const values = searchParam ? [userId, searchParam] : [userId];
   const results = await executeSqlQuery(sqlQuery, values);
   if (results.rowCount > 0) {
     return Number(results.rows[0]['count']);
@@ -178,19 +184,25 @@ async function count(tableName, userId, searchTerm) {
   return 0;
 }
 
-async function list(tableName, userId, searchTerm, pageSize = 20, page = 0) {
-  const total = await count(tableName, userId, searchTerm);
+async function list(tableName, userId, searchColumn, searchTerm, exactSearch = true, pageSize = 20, page = 0) {
+  const total = await count(tableName, userId, searchColumn, searchTerm, exactSearch);
   const offset = page * pageSize;
   const limit = pageSize;
   const pages = Math.ceil(total / pageSize);
   let formattedResults = [];
   if (total > 0) {
-    const searchParam = searchTerm ? `%${searchTerm}%` : '%';
     const uidColumn = getUidColumn(tableName);
-    const searchColumn = getSearchColumn(tableName);
+    let searchClause = '';
+    let searchParam = '';
+    if (searchTerm) {
+      searchParam = exactSearch ? searchTerm : `%${searchTerm}%`;
+      searchColumn = searchColumn || getSearchColumn(tableName);
+      const searchOperation = exactSearch ? '=' : 'like';
+      searchClause = `and ${searchColumn} ${searchOperation} $2`;
+    }
     const createdByColumn = getCreatedByColumn(tableName);
-    const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and ${searchColumn} like $2 and ${DELETED_AT_CLAUSE} offset ${offset} limit ${limit}`;
-    const values = [userId, searchParam];
+    const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 ${searchClause} and ${DELETED_AT_CLAUSE} offset ${offset} limit ${limit}`;
+    const values = searchParam ? [userId, searchParam] : [userId];
     const results = await executeSqlQuery(sqlQuery, values);
     formattedResults = results.rows.map((row) => cleanseRow(row));
     formattedResults.map((data) => cacheService.cache(getCacheContext(tableName, userId), data[uidColumn], data));

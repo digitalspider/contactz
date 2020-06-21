@@ -1760,8 +1760,13 @@ components:
         favourite:
           type: boolean
           description: Toggle if this contact is a favourite
-        address:
-          $ref: "#/components/schemas/address"
+        address_id:
+          type: string
+          description: the selected primary address
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/addressEmbedded"
         gender:
           $ref: "#/components/schemas/genderEnum"
         date_birth:
@@ -1811,6 +1816,43 @@ components:
           $ref: "#/components/schemas/entityId"
         contact_id:
           type: string
+        name:
+          type: string
+          description: The name for this address
+        street:
+          type: string
+          description: The street address
+        suburb:
+          type: string
+          description: The suburb
+          example: Toongabbie
+        state:
+          type: string
+          description: The state, one of NSW, VIC, WA, QLD, NT, TAS, ACT or OTHER
+          pattern: ^(NSW|VIC|WA|QLD|NT|TAS|ACT|OTHER)$
+          example: NSW
+          nullable: true
+        postcode:
+          type: string
+          description: The four digit (AU) postcode
+          pattern: "^[0-9]{4}$"
+          example: "2145"
+        country:
+          type: string
+          description: The ISO 3166 Alpha-2 country code. Australia is AU
+          pattern: ^([A-Z]{2}|[a-z]{2})$
+          example: AU
+    addressEmbedded:
+      type: object
+      description: Structure of the address information
+      required:
+        - name
+        - street
+        - state
+        - postcode
+      properties:
+        uuid:
+          $ref: "#/components/schemas/entityId"
         name:
           type: string
           description: The name for this address

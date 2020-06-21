@@ -88,6 +88,7 @@ async function crudFunction(event) {
   const pathContext = pathParts.length > 1 ? pathParts[1] : null;
   const tableName = RESERVED_TABLE_NAMES.includes(pathContext) ? pathContext + 's' : pathContext;
   const body = typeof event.body === 'string' ? JSON.parse(event.body) : undefined;
+  const bodyClone = Object.assign({}, body);
   let result;
 
   const userUuid = event.requestContext.authorizer.principalId;
@@ -110,7 +111,7 @@ async function crudFunction(event) {
           limit = !isNaN(pageSize) ? Number(pageSize) : undefined;
           pageNo = !isNaN(page) ? Number(page) : undefined;
         }
-        result = await dbService.list(tableName, userId, searchTerm, limit, pageNo);
+        result = await dbService.list(tableName, userId, null, searchTerm, false, limit, pageNo);
         result.results && result.results.map(data => mapService.dbToApi(tableName, userId, data));
       } else {
         result = await dbService.get(tableName, userId, id);
@@ -118,15 +119,17 @@ async function crudFunction(event) {
       }
       break;
     case METHOD.POST:
-      await mapService.apiToDb(tableName, userId, body);
-      result = await dbService.create(tableName, userId, body);
+      await mapService.apiToDb(tableName, userId, bodyClone);
+      result = await dbService.create(tableName, userId, bodyClone);
+      await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
       break;
     case METHOD.PUT:
       if (!id) {
         throw new Error('Invalid request, no ID provided');
       }
-      await mapService.apiToDb(tableName, userId, body);
-      result = await dbService.update(tableName, userId, id, body);
+      await mapService.apiToDb(tableName, userId, bodyClone);
+      result = await dbService.update(tableName, userId, id, bodyClone);
+      await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
       break;
     case METHOD.DELETE:
       if (!id) {
