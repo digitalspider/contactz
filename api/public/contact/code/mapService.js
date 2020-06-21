@@ -11,6 +11,7 @@ async function dbToApi(tableName, userId, id, body) {
     case TABLE.CONTACT:
       return dbToApiContact(userId, id, body);
   }
+  return body;
 }
 
 async function apiToDb(tableName, userId, _id, body) {

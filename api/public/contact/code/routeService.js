@@ -127,9 +127,8 @@ async function crudFunction(event) {
       if (!id) {
         throw new Error('Invalid request, no ID provided');
       }
-      await mapService.apiToDb(tableName, userId, id, bodyClone);
-      result = await dbService.update(tableName, userId, id, bodyClone);
-      await mapService.apiToDbPost(tableName, userId, id, body, result.uuid || result.name);
+      await mapService.apiToDb(tableName, userId, id, body);
+      result = await dbService.update(tableName, userId, id, body);
       break;
     case METHOD.DELETE:
       if (!id) {
