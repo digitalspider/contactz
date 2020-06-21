@@ -1,9 +1,5 @@
 const httpService = require('./httpService');
 const routeService = require('./routeService');
-const dbService = require('./dbService');
-const mapService = require('./mapService');
-
-const RESERVED_TABLE_NAMES = ['group', 'role', 'user'];
 
 exports.handler = async (event, _context) => {
   console.log('==== event ====');

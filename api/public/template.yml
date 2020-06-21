@@ -57,7 +57,7 @@ Resources:
       AccessLogSetting:
         DestinationArn:
           Fn::GetAtt: AccessLogs.Arn
-        Format: requestId:$context.requestId, method:$context.httpMethod, xrayId:$context.xrayTraceId, principalId:$context.authorizer.principalId
+        Format: requestId:$context.requestId,method:$context.httpMethod,path:$context.path,SourceIp:$context.identity.sourceIp,xrayId:$context.xrayTraceId,principalId:$context.authorizer.principalId,RequestTime:$context.requestTime,AuthorizerLatency:$context.authorizer.integrationLatency,IntegrationLatency:$context.integrationLatency,ResponseLatency:$context.responseLatency,ResponseStatus:$context.status
       Tags:
         Name: API Gateway
         Description: API Gateway
