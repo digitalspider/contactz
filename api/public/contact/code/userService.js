@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
+const md5 = require('md5');
 const dbService = require('./dbService');
 const httpService = require('./httpService');
 
