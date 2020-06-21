@@ -4,16 +4,16 @@ const cacheService = require('./cacheService');
 const { TABLE } = dbService;
 const { CONTACT_UUID_ID } = cacheService.CONTEXT;
 
-async function dbToApi(tableName, userId, body) {
+async function dbToApi(tableName, userId, id, body) {
   switch (tableName) {
     case TABLE.ADDRESS:
       return dbToApiAddress(userId, body);
     case TABLE.CONTACT:
-      return dbToApiContact(userId, body);
+      return dbToApiContact(userId, id, body);
   }
 }
 
-async function apiToDb(tableName, userId, body) {
+async function apiToDb(tableName, userId, _id, body) {
   switch (tableName) {
     case TABLE.ADDRESS:
       return apiToDbAddress(userId, body);
@@ -23,10 +23,10 @@ async function apiToDb(tableName, userId, body) {
   return body;
 }
 
-async function apiToDbPost(tableName, userId, body, uuid) {
+async function apiToDbPost(tableName, userId, id, body, uuid) {
   switch (tableName) {
     case TABLE.CONTACT:
-      return apiToDbPostContact(userId, body, uuid);
+      return apiToDbPostContact(userId, body, id, uuid);
   }
   return body;
 }
@@ -60,8 +60,8 @@ async function apiToDbAddress(userId, body) {
   return body;
 }
 
-async function dbToApiContact(userId, body) {
-  const contacts = await dbService.list(TABLE.ADDRESS, userId, 'contact_id', userId);
+async function dbToApiContact(userId, id, body) {
+  const contacts = await dbService.list(TABLE.ADDRESS, userId, 'contact_id', id || body.contact_id);
   // TODO: Wont show more than 20 addresses?
   body.addresses = contacts.results;
   return body;
@@ -72,19 +72,21 @@ async function apiToDbContact(userId, body) {
   return body;
 }
 
-async function apiToDbPostContact(userId, body, uuid) {
+async function apiToDbPostContact(userId, id, body, uuid) {
   if (body.addresses) {
-    const promises = []
-    const contactId = await dbService.getId(TABLE.CONTACT, userId, uuid);
-    body.addresses.map((address) => {
-      address.contact_id = contactId;
-      if (address.uuid) {
-        promises.push(dbService.update(TABLE.ADDRESS, userId, address.uuid, address));
-      } else {
-        promises.push(dbService.create(TABLE.ADDRESS, userId, address));
-      }
-    });
-    await Promise.all(promises);
+    const contactId = await dbService.getId(TABLE.CONTACT, userId, id || uuid);
+    if (contactId) {
+      const promises = [];
+      body.addresses.map((address) => {
+        address.contact_id = contactId;
+        if (address.uuid) {
+          promises.push(dbService.update(TABLE.ADDRESS, userId, address.uuid, address));
+        } else {
+          promises.push(dbService.create(TABLE.ADDRESS, userId, address));
+        }
+      });
+      await Promise.all(promises);
+    }
   }
 }
 

@@ -112,24 +112,24 @@ async function crudFunction(event) {
           pageNo = !isNaN(page) ? Number(page) : undefined;
         }
         result = await dbService.list(tableName, userId, null, searchTerm, false, limit, pageNo);
-        result.results && result.results.map(data => mapService.dbToApi(tableName, userId, data));
+        result.results && result.results.map(data => mapService.dbToApi(tableName, userId, null, data));
       } else {
         result = await dbService.get(tableName, userId, id);
-        await mapService.dbToApi(tableName, userId, result);
+        await mapService.dbToApi(tableName, userId, id, result);
       }
       break;
     case METHOD.POST:
-      await mapService.apiToDb(tableName, userId, bodyClone);
+      await mapService.apiToDb(tableName, userId, null, bodyClone);
       result = await dbService.create(tableName, userId, bodyClone);
-      await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
+      await mapService.apiToDbPost(tableName, userId, null, body, result.uuid || result.name);
       break;
     case METHOD.PUT:
       if (!id) {
         throw new Error('Invalid request, no ID provided');
       }
-      await mapService.apiToDb(tableName, userId, bodyClone);
+      await mapService.apiToDb(tableName, userId, id, bodyClone);
       result = await dbService.update(tableName, userId, id, bodyClone);
-      await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
+      await mapService.apiToDbPost(tableName, userId, id, body, result.uuid || result.name);
       break;
     case METHOD.DELETE:
       if (!id) {
