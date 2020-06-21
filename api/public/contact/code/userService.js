@@ -57,7 +57,7 @@ async function refreshToken(headers) {
   const { refreshToken: md5refreshToken } = headers;
   let jwtPayload;
   try {
-    const refreshToken = findUserTokenByRefreshToken(md5refreshToken);
+    const refreshToken = await findUserTokenByRefreshToken(md5refreshToken);
     if (!refreshToken) {
       throw new Error('Authorization failed. refreshToken is invalid. Please log in');
     }
@@ -95,7 +95,10 @@ async function updateUserToken(user, token, refreshToken) {
 async function findUserTokenByRefreshToken(refreshToken) {
   const sqlQuery = `select refresh_token from ${dbService.TABLE.USERS} where md5(refresh_token) = $1`;
   const values = [refreshToken];
-  await dbService.executeSqlQuery(sqlQuery, values);
+  const result = await dbService.executeSqlQuery(sqlQuery, values);
+  if (result.rowCount > 0) {
+    return result.rows[0]['refresh_token'];
+  }
 }
 
 async function handleLogin({ username, password }) {
