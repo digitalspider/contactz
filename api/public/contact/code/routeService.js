@@ -18,7 +18,7 @@ async function route(event) {
     return { 'success': true };
   }
   switch (pathContext) {
-    case 'ping':
+    case 'status':
       return { 'success': true };
     case 'user':
       return routeUser(event);

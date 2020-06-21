@@ -106,6 +106,15 @@ Resources:
               Ref: PublicApi
             Stage:
               Ref: StageName
+        Status:
+          Type: Api
+          Properties:
+            Path: /status
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
         UserRegister:
           Type: Api
           Properties:
