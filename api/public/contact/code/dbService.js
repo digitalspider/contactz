@@ -290,8 +290,23 @@ async function hardDelete(tableName, userId, id) {
   return executeSqlQuery(sqlQuery, values);
 }
 
+async function getTypes() {
+  const cacheId = 'ALL';
+  let result = cacheService.fromCache(cacheService.CONTEXT.TYPES, cacheId);
+  if (result) {
+    return result;
+  }
+  const sqlQuery = 'SELECT pg_type.typname as type, pg_enum.enumlabel as value FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid';
+  const sqlTypes = executeSqlQuery(sqlQuery, values);
+  if (sqlTypes.rowCount > 0) {
+    result = sqlTypes.rows;
+    cacheService.cache(cacheService.CONTEXT.TYPES, cacheId, result);
+    return result;
+  }
+}
+
 function getCacheContext(tableName, userId) {
   return `${userId}-get-${tableName}`;
 }
 
-module.exports = { count, list, get, getId, getById, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
+module.exports = { count, list, get, getId, getById, getTypes, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
