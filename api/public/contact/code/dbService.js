@@ -296,7 +296,7 @@ async function getTypes() {
   if (result) {
     return result;
   }
-  const sqlQuery = 'SELECT pg_type.typname as type, pg_enum.enumlabel as value FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid';
+  const sqlQuery = 'SELECT pg_type.typname as name, pg_enum.enumlabel as value FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid';
   const sqlTypes = executeSqlQuery(sqlQuery, values);
   if (sqlTypes.rowCount > 0) {
     result = sqlTypes.rows;

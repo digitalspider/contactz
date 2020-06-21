@@ -22,6 +22,8 @@ async function route(event) {
       return { 'success': true };
     case 'user':
       return routeUser(event);
+    case 'type':
+      return routeType(event);
     case 'contact':
     case 'org':
     case 'address':
@@ -57,6 +59,27 @@ async function routeUser(event) {
     default:
       throw new Error(`Invalid request. Unknown userAction: ${userAction}`);
   }
+}
+
+async function routeType(event) {
+  const method = event.httpMethod;
+  const pathParts = event.path ? event.path.split('/') : null;
+  if (method !== METHOD.GET) {
+    throw new Error(`Invalid request method: ${method}`);
+  }
+  const typeName = pathParts.length > 2 ? pathParts[2] : null;
+  const types = await dbService.getTypes();
+  let results = {};
+  types.forEach((type) => {
+    if (!results[type.name]) {
+      results[type.name] = [];
+    }
+    results[type.name].push(type.value);
+  });
+  if (typeName) {
+    results = results[typeName];
+  }
+  return results;
 }
 
 async function crudFunction(event) {

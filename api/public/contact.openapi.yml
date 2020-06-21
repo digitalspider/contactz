@@ -5,6 +5,7 @@ info:
   description: Contact Public APIs
 tags:
   - name: "ping"
+  - name: "type"
   - name: "user"
   - name: "organisation"
   - name: "contact"
@@ -182,6 +183,143 @@ paths:
       x-amazon-apigateway-request-validator: all
       x-amazon-apigateway-integration:
         httpMethod: POST
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+
+  /type:
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "type"
+      operationId: ListTypes
+      description: |
+        List all types in the database
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contactList"
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      security:
+        - user-authorizer: []
+      x-amazon-apigateway-request-validator: all
+      x-amazon-apigateway-integration:
+        httpMethod: GET
+        type: AWS_PROXY
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations
+  /type/{name}:
+    parameters:
+      - in: path
+        name: name
+        description: The name of the type
+        schema:
+          type: string
+        required: true
+    options:
+      tags:
+        - "CORS"
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+          content: {}
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {'statusCode': 200}
+        responses:
+          default:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,OPTIONS,POST,PUT'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+        passthroughBehavior: when_no_match
+    get:
+      tags:
+        - "type"
+      operationId: ListTypesFiltered
+      description: |
+        Get the types for the specified name
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        400:
+          description: The request couldn't be parsed or validated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiError"
+        401:
+          description: The request authorization is invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/apiUnauthorized"
+      security:
+        - user-authorizer: []
+      x-amazon-apigateway-integration:
+        httpMethod: GET
         type: AWS_PROXY
         uri:
           Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ContactFunction.Arn}/invocations

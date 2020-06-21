@@ -142,6 +142,24 @@ Resources:
               Ref: PublicApi
             Stage:
               Ref: StageName
+        ListTypes:
+          Type: Api
+          Properties:
+            Path: /type
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
+        ListTypesFiltered:
+          Type: Api
+          Properties:
+            Path: /type/{name}
+            Method: get
+            RestApiId:
+              Ref: PublicApi
+            Stage:
+              Ref: StageName
         ListContact:
           Type: Api
           Properties:
