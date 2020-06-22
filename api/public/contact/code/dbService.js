@@ -278,7 +278,7 @@ async function get(tableName, userId, uuid) {
   await validate(tableName, userId, uuid);
   let result = cacheService.fromCache(getCacheContext(tableName, userId), uuid);
   if (result) {
-    return result;
+    return Object.assign({}, result);
   }
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
@@ -334,7 +334,7 @@ async function getTypes() {
   const cacheId = 'ALL';
   let result = cacheService.fromCache(cacheService.CONTEXT.TYPES, cacheId);
   if (result) {
-    return result;
+    return Object.assign({}, result);
   }
   const sqlQuery = 'SELECT pg_type.typname as name, pg_enum.enumlabel as value FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid';
   const values = null;
