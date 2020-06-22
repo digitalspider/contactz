@@ -97,11 +97,11 @@ async function crudFunction(event) {
     throw new Error('Authorization failed. No user available in request');
   }
   const userId = user.id;
-  const id = event.pathParameters ? event.pathParameters.id : null;
-  logService.debug(`userId=${userId}. id=${id}`);
+  const uuid = event.pathParameters ? event.pathParameters.id : null;
+  logService.debug(`userId=${userId}. id=${uuid}`);
   switch (method) {
     case METHOD.GET:
-      if (!id) {
+      if (!uuid) {
         let searchTerm;
         let limit;
         let pageNo;
@@ -114,8 +114,8 @@ async function crudFunction(event) {
         result = await dbService.list(tableName, userId, null, searchTerm, false, limit, pageNo);
         result.results && result.results.map(data => mapService.dbToApi(tableName, userId, null, data));
       } else {
-        result = await dbService.get(tableName, userId, id);
-        await mapService.dbToApi(tableName, userId, id, result);
+        result = await dbService.get(tableName, userId, uuid);
+        await mapService.dbToApi(tableName, userId, uuid, result);
       }
       break;
     case METHOD.POST:
@@ -124,17 +124,17 @@ async function crudFunction(event) {
       await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
       break;
     case METHOD.PUT:
-      if (!id) {
+      if (!uuid) {
         throw new Error('Invalid request, no ID provided');
       }
-      await mapService.apiToDb(tableName, userId, id, body);
-      result = await dbService.update(tableName, userId, id, body);
+      await mapService.apiToDb(tableName, userId, uuid, body);
+      result = await dbService.update(tableName, userId, uuid, body);
       break;
     case METHOD.DELETE:
-      if (!id) {
+      if (!uuid) {
         throw new Error('Invalid request, no ID provided');
       }
-      result = await dbService.softDelete(tableName, userId, id);
+      result = await dbService.softDelete(tableName, userId, uuid);
       break;
     default:
       throw new Error(`Invalid request method: ${method}`);

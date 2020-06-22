@@ -1,4 +1,4 @@
-const { DEBUG } = process.env;
+const { DEBUG, DEBUG_SQL } = process.env;
 
 function info(...messages) {
   console.log(createPrintString(messages));
@@ -18,8 +18,14 @@ function debug(...messages) {
   }
 }
 
+function debugSql(...messages) {
+  if (DEBUG_SQL) {
+    console.log(createPrintString(['SQL: ', messages]));
+  }
+}
+
 function createPrintString(messages) {
   return messages.map((message) => typeof message === 'string' ? message : JSON.stringify(message)).join(' ');
 }
 
-module.exports = { info, warn, error, debug };
+module.exports = { info, warn, error, debug, debugSql };

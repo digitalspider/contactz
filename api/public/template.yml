@@ -78,6 +78,7 @@ Resources:
           JWT_SECRET:
             Ref: JwtSecret
           DEBUG: true
+          DEBUG_SQL: true
       Tracing: Active
       Layers:
         - Ref: ContactDependenciesLayer
