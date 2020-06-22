@@ -1,26 +1,24 @@
 const dbService = require('./dbService');
-const cacheService = require('./cacheService');
 
 const { TABLE } = dbService;
-const { CONTACT_UUID_ID } = cacheService.CONTEXT;
 
 async function dbToApi(tableName, userId, id, body) {
   switch (tableName) {
-    case TABLE.ADDRESS:
-      return dbToApiAddress(userId, body);
     case TABLE.CONTACT:
       return dbToApiContact(userId, id, body);
   }
+  await convertToApiId(userId, body, 'contact_id', TABLE.CONTACT);
+  await convertToApiId(userId, body, 'address_id', TABLE.ADDRESS);
   return body;
 }
 
 async function apiToDb(tableName, userId, _id, body) {
   switch (tableName) {
-    case TABLE.ADDRESS:
-      return apiToDbAddress(userId, body);
     case TABLE.CONTACT:
       return apiToDbContact(userId, body);
   }
+  await convertToDbId(userId, body, 'contact_id', TABLE.CONTACT);
+  await convertToDbId(userId, body, 'address_id', TABLE.ADDRESS);
   return body;
 }
 
@@ -32,33 +30,28 @@ async function apiToDbPost(tableName, userId, id, body, uuid) {
   return body;
 }
 
-async function dbToApiAddress(userId, body) {
-  const contact_id = Number(body.contact_id);
-  let contactUuid = cacheService.getKeyByValue(CONTACT_UUID_ID, contact_id);
-  if (!contactUuid) {
-    const contact = await dbService.getById(TABLE.CONTACT, userId, contact_id);
-    if (!contact) {
-      throw new Error(`Invalid contact_id does not exist. contact_id=${contact_id}`);
+async function convertToDbId(userId, body, fieldName, tableName) {
+  const uuid = body[fieldName];
+  if (uuid) {
+    const id = await dbService.getId(tableName, userId, uuid);
+    if (!id) {
+      throw new Error(`Invalid ${fieldName} does not exist. ${fieldName}=${uuid}`);
     }
-    contactUuid = contact.uuid;
-    cacheService.cache(CONTACT_UUID_ID, contact.uuid, contact.id);
+    body[fieldName] = id;
+    return id;
   }
-  body.contact_id = contactUuid;
-  return body;
 }
 
-async function apiToDbAddress(userId, body) {
-  const { contact_id: contactUuid } = body;
-  let contactId = cacheService.fromCache(CONTACT_UUID_ID, contactUuid);
-  if (!contactId) {
-    contactId = await dbService.getId(TABLE.CONTACT, userId, contactUuid);
-    if (!contactId) {
-      throw new Error(`Invalid contact_id does not exist. contact_id=${contactUuid}`);
+async function convertToApiId(userId, body, fieldName, tableName) {
+  const id = body[fieldName];
+  if (id) {
+    const uuid = await dbService.getUuidById(tableName, userId, id);
+    if (!uuid) {
+      throw new Error(`Invalid ${fieldName} does not exist. ${fieldName}=${id}`);
     }
-    cacheService.cache(CONTACT_UUID_ID, contactUuid, contactId);
+    body[fieldName] = uuid;
+    return uuid;
   }
-  body.contact_id = contactId;
-  return body;
 }
 
 async function dbToApiContact(userId, id, body) {
@@ -72,7 +65,7 @@ async function dbToApiContact(userId, id, body) {
 }
 
 async function apiToDbContact(userId, body) {
-  delete body.addresses;
+  delete body.addresses; // these will be processed later
   return body;
 }
 

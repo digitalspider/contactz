@@ -232,23 +232,41 @@ async function create(tableName, userId, body) {
   return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
 }
 
-async function getById(tableName, userId, id) {
+async function getUuidById(tableName, userId, id) {
   // await validate(tableName, userId, id); // Can't validate :(
+  const cacheContext = `${tableName}-uuid-id`;
+  let result = cacheService.getKeyByValue(cacheContext, id);
+  if (result) {
+    return result;
+  }
   const createdByColumn = getCreatedByColumn(tableName);
-  const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 and id = $2`;
+  const sqlQuery = `select uuid from ${tableName} where ${createdByColumn} = $1 and id = $2`;
   const values = [userId, id];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows.map((row) => cleanseRow(row))[0];
+  if (results.rowCount > 0) {
+    result = results.rows[0]['uuid'];
+    cacheService.cache(cacheContext, result, id);
+    return result;
+  }
 }
 
-async function getId(tableName, userId, id) {
-  await validate(tableName, userId, id);
+async function getId(tableName, userId, uuid) {
+  await validate(tableName, userId, uuid);
+  const cacheContext = `${tableName}-uuid-id`;
+  let result = cacheService.fromCache(cacheContext, uuid);
+  if (result) {
+    return result;
+  }
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
   const sqlQuery = `select id from ${tableName} where ${createdByColumn} = $1 and ${uidColumn} = $2`;
-  const values = [userId, id];
+  const values = [userId, uuid];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rows.map((row) => { delete row.password; return row })[0]['id'];
+  if (results.rowCount > 0) {
+    result = results.rows[0]['id'];
+    cacheService.cache(cacheContext, uuid, result);
+    return result;
+  }
 }
 
 async function get(tableName, userId, id) {
@@ -270,6 +288,7 @@ async function get(tableName, userId, id) {
 async function update(tableName, userId, id, body) {
   await validate(tableName, userId, id);
   cacheService.invalidate(getCacheContext(tableName, userId), id);
+  cacheService.invalidate(`${tableName}-uuid-id`, id);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
   const updateData = await getUpdateData(userId, tableName, body);
@@ -284,6 +303,7 @@ async function update(tableName, userId, id, body) {
 async function softDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
   cacheService.invalidate(getCacheContext(tableName, userId), id);
+  cacheService.invalidate(`${tableName}-uuid-id`, id);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
   const sqlQuery = `update ${tableName} set ${COLUMN.DELETED_AT} = now() where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING ${uidColumn}`;
@@ -295,6 +315,7 @@ async function softDelete(tableName, userId, id) {
 async function hardDelete(tableName, userId, id) {
   await validate(tableName, userId, id);
   cacheService.invalidate(getCacheContext(tableName, userId), id);
+  cacheService.invalidate(`${tableName}-uuid-id`, id);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
   const sqlQuery = `delete from ${tableName} where ${createdByColumn} = $1 and ${uidColumn} = $2`;
@@ -322,4 +343,4 @@ function getCacheContext(tableName, userId) {
   return `${userId}-get-${tableName}`;
 }
 
-module.exports = { count, list, get, getId, getById, getTypes, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
+module.exports = { count, list, get, getId, getUuidById, getTypes, create, update, softDelete, hardDelete, executeSqlQuery, TABLE, COLUMN };
