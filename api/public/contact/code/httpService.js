@@ -1,5 +1,6 @@
 const moment = require('moment');
 const constants = require('./constants');
+const logService = require('./logService');
 const httpStatus = constants.HTTP_STATUS;
 
 class NotFoundError extends Error {
@@ -58,7 +59,7 @@ function sendResponseError(err, headers = {}) {
  */
 function sendResponse(statusCode, body = {}, headers = {}, isBase64Encoded = false) {
   // For exports and images
-  if (['application/pdf','text/csv'].includes(headers['Accept'])) {
+  if (['application/pdf', 'text/csv'].includes(headers['Accept'])) {
     headers['Content-Type'] = headers['Accept'];
     body = body.toString('base64');
     isBase64Encoded = true;
@@ -73,9 +74,9 @@ function sendResponse(statusCode, body = {}, headers = {}, isBase64Encoded = fal
     body,
     isBase64Encoded
   };
-  
-  console.log("response: " + JSON.stringify(response));
+
+  logService.debug('response', response);
   return response;
 }
 
-module.exports = {sendResponse, sendResponseOk, sendResponseError, NotFoundError, BadRequestError};
+module.exports = { sendResponse, sendResponseOk, sendResponseError, NotFoundError, BadRequestError };

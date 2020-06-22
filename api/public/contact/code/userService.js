@@ -3,6 +3,7 @@ const moment = require('moment');
 const md5 = require('md5');
 const dbService = require('./dbService');
 const httpService = require('./httpService');
+const logService = require('./logService');
 
 const issuer = 'https://api.contactz.com.au';
 const JWT_TOKEN_EXPIRY_IN_SEC = 4 * 60 * 60; // 4h
@@ -22,24 +23,24 @@ async function register(loginBody) {
 
 async function login(loginBody) {
   const user = await handleLogin(loginBody);
-  console.log(`user=${JSON.stringify(user)}`);
+  logService.debug('user', user);
   if (!user) {
     throw new httpService.BadRequestError(`Invalid login credentials`);
   }
   const claims = getClaims(user);
-  console.log(`claims=${JSON.stringify(claims)}`);
+  logService.debug('claims', claims);
   const token = jwt.sign(claims, JWT_SECRET, { algorithm });
-  console.log(`token=${JSON.stringify(token)}`);
+  logService.debug('token', token);
   let refreshToken = null;
   if (loginBody.refresh) {
     claims.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
     refreshToken = jwt.sign(claims, JWT_SECRET, { algorithm });
-    console.log(`refreshToken=${JSON.stringify(refreshToken)}`);
+    logService.debug('refreshToken', refreshToken);
   }
   await updateUserToken(user, token, refreshToken);
   delete user.id;
   delete user.password;
-  console.log(`user=${JSON.stringify(user)}`);
+  logService.debug('user', user);
   return user;
 }
 
@@ -49,7 +50,7 @@ async function logout(userUuid) {
     throw new Error('Authorization failed. No user available in request');
   }
   await updateUserToken(user, null, null);
-  console.log(`Logged out user=${userUuid}`);
+  logService.info(`Logged out user=${userUuid}`);
   return { 'success': true };
 }
 
@@ -71,16 +72,16 @@ async function refreshToken(headers) {
     throw new Error('Authorization failed. No user available in refreshToken');
   }
   jwtPayload.exp = moment().unix() + JWT_TOKEN_EXPIRY_IN_SEC;
-  console.log(`claims=${JSON.stringify(jwtPayload)}`);
+  logService.debug('claims', claims);
   const token = jwt.sign(jwtPayload, JWT_SECRET, { algorithm });
-  console.log(`token=${JSON.stringify(token)}`);
+  logService.debug('token', token);
   jwtPayload.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
   const newRefreshToken = jwt.sign(jwtPayload, JWT_SECRET, { algorithm });
-  console.log(`refreshToken=${JSON.stringify(newRefreshToken)}`);
+  logService.debug('refreshToken', refreshToken);
   await updateUserToken(user, token, newRefreshToken);
   delete user.id;
   delete user.password;
-  console.log(`user=${JSON.stringify(user)}`);
+  logService.debug('user', user);
   return user;
 }
 

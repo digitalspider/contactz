@@ -2,6 +2,7 @@ const pg = require('pg');
 const httpService = require('./httpService');
 const secretService = require('./secretService');
 const cacheService = require('./cacheService');
+const logService = require('./logService');
 const constants = require('./constants');
 const httpStatus = constants.HTTP_STATUS;
 
@@ -226,7 +227,7 @@ function cleanseRow(row) {
 async function create(tableName, userId, body) {
   const uidColumn = getUidColumn(tableName);
   const insertData = await getInsertData(userId, tableName, body);
-  console.log(insertData);
+  logService.debug('insertData', insertData);
   const sqlQuery = `insert into ${tableName} (${insertData.columnNames}) VALUES (${insertData.params}) RETURNING ${uidColumn}`;
   const results = await executeSqlQuery(sqlQuery, insertData.values);
   return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
@@ -292,10 +293,10 @@ async function update(tableName, userId, id, body) {
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
   const updateData = await getUpdateData(userId, tableName, body);
-  console.log(updateData);
+  logService.debug('updateData', updateData);
   const sqlQuery = `update ${tableName} set ${updateData.params} where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING ${uidColumn}`;
   const values = [userId, id, ...updateData.values];
-  console.log(values);
+  logService.debug('updateDataValues', values);
   const results = await executeSqlQuery(sqlQuery, values);
   return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
 }

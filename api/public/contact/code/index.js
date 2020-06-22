@@ -1,9 +1,9 @@
 const httpService = require('./httpService');
 const routeService = require('./routeService');
+const logService = require('./logService');
 
 exports.handler = async (event, _context) => {
-  console.log('==== event ====');
-  console.log(event);
+  logService.info('==== event ====', event);
   const headers = {
     'Content-Type': 'application/json'
   };
@@ -11,7 +11,7 @@ exports.handler = async (event, _context) => {
     const result = await routeService.route(event);
     return httpService.sendResponseOk(result, headers);
   } catch (err) {
-    console.log(err);
+    logService.error(err);
     return httpService.sendResponseError(err, headers);
   }
 }

@@ -1,6 +1,7 @@
 const userService = require('./userService');
 const dbService = require('./dbService');
 const mapService = require('./mapService');
+const logService = require('./logService');
 
 const RESERVED_TABLE_NAMES = ['group', 'role', 'user'];
 const METHOD = {
@@ -13,7 +14,7 @@ const METHOD = {
 async function route(event) {
   const pathParts = event.path ? event.path.split('/') : null;
   const pathContext = pathParts.length > 1 ? pathParts[1] : null;
-  console.log(`pathContext=${pathContext}`);
+  logService.info('pathContext', pathContext);
   if (!pathContext) {
     return { 'success': true };
   }
@@ -97,7 +98,7 @@ async function crudFunction(event) {
   }
   const userId = user.id;
   const id = event.pathParameters ? event.pathParameters.id : null;
-  console.log(`userId=${userId}. id=${id}`);
+  logService.debug(`userId=${userId}. id=${id}`);
   switch (method) {
     case METHOD.GET:
       if (!id) {
