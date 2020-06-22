@@ -18,10 +18,10 @@ async function apiToDb(_tableName, userId, _uuid, body) {
   return body;
 }
 
-async function apiToDbPost(tableName, userId, id, body, uuid) {
+async function apiToDbPost(tableName, userId, body, uuid) {
   switch (tableName) {
     case TABLE.CONTACT:
-      return apiToDbPostContact(userId, body, id, uuid);
+      return apiToDbPostContact(userId, body, uuid);
   }
   return body;
 }
@@ -60,9 +60,9 @@ async function dbToApiContact(userId, uuid, body) {
   return body;
 }
 
-async function apiToDbPostContact(userId, id, body, uuid) {
+async function apiToDbPostContact(userId, body, uuid) {
   if (body.addresses) {
-    const contactId = await dbService.getId(TABLE.CONTACT, userId, id || uuid);
+    const contactId = await dbService.getId(TABLE.CONTACT, userId, uuid);
     if (contactId) {
       const promises = [];
       body.addresses.map((address) => {

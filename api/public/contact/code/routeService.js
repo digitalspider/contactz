@@ -120,7 +120,7 @@ async function crudFunction(event) {
     case METHOD.POST:
       await mapService.apiToDb(tableName, userId, null, body);
       result = await dbService.create(tableName, userId, body);
-      await mapService.apiToDbPost(tableName, userId, null, body, result.uuid || result.name);
+      await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
       break;
     case METHOD.PUT:
       if (!id) {
