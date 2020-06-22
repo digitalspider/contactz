@@ -2,21 +2,17 @@ const dbService = require('./dbService');
 
 const { TABLE } = dbService;
 
-async function dbToApi(tableName, userId, id, body) {
-  switch (tableName) {
-    case TABLE.CONTACT:
-      return dbToApiContact(userId, id, body);
-  }
+async function dbToApi(tableName, userId, uuid, body) {
   await convertToApiId(userId, body, 'contact_id', TABLE.CONTACT);
   await convertToApiId(userId, body, 'address_id', TABLE.ADDRESS);
+  switch (tableName) {
+    case TABLE.CONTACT:
+      return dbToApiContact(userId, uuid, body);
+  }
   return body;
 }
 
-async function apiToDb(tableName, userId, _id, body) {
-  switch (tableName) {
-    case TABLE.CONTACT:
-      return apiToDbContact(userId, body);
-  }
+async function apiToDb(_tableName, userId, _uuid, body) {
   await convertToDbId(userId, body, 'contact_id', TABLE.CONTACT);
   await convertToDbId(userId, body, 'address_id', TABLE.ADDRESS);
   return body;
@@ -54,18 +50,13 @@ async function convertToApiId(userId, body, fieldName, tableName) {
   }
 }
 
-async function dbToApiContact(userId, id, body) {
-  const contactId = await dbService.getId(TABLE.CONTACT, userId, id || body.contact_id);
+async function dbToApiContact(userId, uuid, body) {
+  const contactId = uuid ? await dbService.getId(TABLE.CONTACT, userId, uuid) : body.contact_id;
   if (contactId) {
     const contacts = await dbService.list(TABLE.ADDRESS, userId, 'contact_id', contactId);
     // TODO: Wont show more than 20 addresses?
     body.addresses = contacts.results;
   }
-  return body;
-}
-
-async function apiToDbContact(userId, body) {
-  delete body.addresses; // these will be processed later
   return body;
 }
 
