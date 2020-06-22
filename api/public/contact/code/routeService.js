@@ -88,7 +88,6 @@ async function crudFunction(event) {
   const pathContext = pathParts.length > 1 ? pathParts[1] : null;
   const tableName = RESERVED_TABLE_NAMES.includes(pathContext) ? pathContext + 's' : pathContext;
   const body = typeof event.body === 'string' ? JSON.parse(event.body) : undefined;
-  const bodyClone = Object.assign({}, body);
   let result;
 
   const userUuid = event.requestContext.authorizer.principalId;
@@ -119,8 +118,8 @@ async function crudFunction(event) {
       }
       break;
     case METHOD.POST:
-      await mapService.apiToDb(tableName, userId, null, bodyClone);
-      result = await dbService.create(tableName, userId, bodyClone);
+      await mapService.apiToDb(tableName, userId, null, body);
+      result = await dbService.create(tableName, userId, body);
       await mapService.apiToDbPost(tableName, userId, null, body, result.uuid || result.name);
       break;
     case METHOD.PUT:
