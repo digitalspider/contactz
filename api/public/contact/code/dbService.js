@@ -210,7 +210,7 @@ async function list(tableName, userId, searchColumn, searchTerm, exactSearch = t
     const values = searchParam ? [userId, searchParam] : [userId];
     const results = await executeSqlQuery(sqlQuery, values);
     formattedResults = results.rows.map((row) => cleanseRow(row));
-    formattedResults.map((data) => cacheService.cache(getCacheContext(tableName, userId), data[uidColumn], data));
+    formattedResults.map((data) => cacheService.cache(getCacheContext(tableName, userId), data[uidColumn], Object.assign({}, data)));
   }
   return {
     total,
@@ -287,7 +287,7 @@ async function get(tableName, userId, uuid) {
   const results = await executeSqlQuery(sqlQuery, values);
   if (results.rowCount > 0) {
     result = results.rows.map((row) => cleanseRow(row))[0];
-    cacheService.cache(getCacheContext(tableName, userId), uuid, result);
+    cacheService.cache(getCacheContext(tableName, userId), uuid, Object.assign({}, result));
   }
   return result;
 }
@@ -341,7 +341,7 @@ async function getTypes() {
   const sqlTypes = await executeSqlQuery(sqlQuery, values);
   if (sqlTypes.rowCount > 0) {
     result = sqlTypes.rows;
-    cacheService.cache(cacheService.CONTEXT.TYPES, cacheId, result);
+    cacheService.cache(cacheService.CONTEXT.TYPES, cacheId, Object.assign({}, result));
     return result;
   }
 }
