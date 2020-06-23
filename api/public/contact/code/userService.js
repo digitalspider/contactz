@@ -72,7 +72,7 @@ async function refreshToken(headers) {
     throw new Error('Authorization failed. No user available in refreshToken');
   }
   jwtPayload.exp = moment().unix() + JWT_TOKEN_EXPIRY_IN_SEC;
-  logService.debug('claims', claims);
+  logService.debug('claims', jwtPayload);
   const token = jwt.sign(jwtPayload, JWT_SECRET, { algorithm });
   logService.debug('token', token);
   jwtPayload.exp = moment().unix() + JWT_REFRESH_TOKEN_EXPIRY_IN_SEC;
