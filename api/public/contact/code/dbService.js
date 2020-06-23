@@ -295,7 +295,7 @@ async function get(tableName, userId, uuid) {
   const values = [userId, uuid];
   const results = await executeSqlQuery(sqlQuery, values);
   if (results.rowCount > 0) {
-    const result = results.rows.map((row) => cleanseRow(row))[0];
+    let result = results.rows.map((row) => cleanseRow(row))[0];
     cacheService.cache(getCacheContext(tableName, userId), uuid, Object.assign({}, result));
     return result;
   }
