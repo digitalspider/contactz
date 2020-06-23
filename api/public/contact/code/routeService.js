@@ -112,7 +112,7 @@ async function crudFunction(event) {
           searchOptions = {
             searchTerm: q,
             searchColumn: qc,
-            searchExact: qe || !q, // false if q is defined
+            searchExact: qe || false, // false if q is defined
             sortColumn: sort,
             sortOrder,
           }

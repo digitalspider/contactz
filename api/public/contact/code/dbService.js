@@ -190,7 +190,7 @@ async function count(tableName, userId, searchColumn, searchTerm, exactSearch = 
 }
 
 async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = {}) {
-  const { searchColumn, searchTerm, exactSearch, sortColumn, sortOrder } = searchOptions;
+  let { searchColumn, searchTerm, exactSearch, sortColumn, sortOrder } = searchOptions;
   const total = await count(tableName, userId, searchColumn, searchTerm, exactSearch);
   const offset = page * pageSize;
   const limit = pageSize;
