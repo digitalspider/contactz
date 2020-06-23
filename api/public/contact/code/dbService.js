@@ -203,7 +203,7 @@ async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = 
     if (searchTerm) {
       searchParam = searchExact ? searchTerm : `%${searchTerm}%`;
       searchColumn = searchColumn || getSearchColumn(tableName);
-      const searchOperation = exactSearch ? '=' : 'ilike';
+      const searchOperation = searchExact ? '=' : 'ilike';
       searchClause = `and ${searchColumn} ${searchOperation} $2`;
     }
     let sortClause = '';
