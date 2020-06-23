@@ -58,7 +58,7 @@ async function dbToApiContact(userId, uuid, body) {
       searchTerm: contactId,
       searchExact: true,
     }
-    const pageSize = undefined; // TODO: Wont show more than 20 addresses?
+    let pageSize = undefined; // TODO: Wont show more than 20 addresses?
     const contacts = await dbService.list(TABLE.ADDRESS, userId, pageSize, 0, searchOptions);
     body.addresses = contacts.results;
   }
