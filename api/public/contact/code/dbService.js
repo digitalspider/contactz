@@ -285,7 +285,7 @@ async function getId(tableName, userId, uuid) {
 
 async function get(tableName, userId, uuid) {
   await validate(tableName, userId, uuid);
-  const cacheResult = cacheService.fromCache(getCacheContext(tableName, userId), uuid);
+  let cacheResult = cacheService.fromCache(getCacheContext(tableName, userId), uuid);
   if (cacheResult) {
     return Object.assign({}, cacheResult);
   }
