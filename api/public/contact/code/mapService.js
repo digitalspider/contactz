@@ -53,8 +53,13 @@ async function convertToApiId(userId, body, fieldName, tableName) {
 async function dbToApiContact(userId, uuid, body) {
   const contactId = uuid ? await dbService.getId(TABLE.CONTACT, userId, uuid) : body.contact_id;
   if (contactId) {
-    const contacts = await dbService.list(TABLE.ADDRESS, userId, 'contact_id', contactId);
-    // TODO: Wont show more than 20 addresses?
+    const searchOptions = {
+      searchColumn: 'contact_id',
+      searchTerm: contactId,
+      searchExact: true,
+    }
+    const pageSize = undefined; // TODO: Wont show more than 20 addresses?
+    const contacts = await dbService.list(TABLE.ADDRESS, userId, pageSize, 0, searchOptions);
     body.addresses = contacts.results;
   }
   return body;

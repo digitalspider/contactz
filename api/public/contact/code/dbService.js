@@ -87,9 +87,9 @@ function getUidColumn(tableName) {
 
 async function getTableColumnData(tableName) {
   const cacheContext = cacheService.CONTEXT.TABLE_COLUMN_DATA;
-  const result = cacheService.fromCache(cacheContext, tableName);
-  if (result) {
-    return result;
+  const cacheResult = cacheService.fromCache(cacheContext, tableName);
+  if (cacheResult) {
+    return cacheResult;
   }
   const sqlQuery = `select column_name,is_nullable,data_type from information_schema.columns where table_name = $1`;
   const values = [tableName];
@@ -190,8 +190,8 @@ async function count(tableName, userId, searchColumn, searchTerm, exactSearch = 
 }
 
 async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = {}) {
-  const total = await count(tableName, userId, searchColumn, searchTerm, exactSearch);
   const { searchColumn, searchTerm, exactSearch, sortColumn, sortOrder } = searchOptions;
+  const total = await count(tableName, userId, searchColumn, searchTerm, exactSearch);
   const offset = page * pageSize;
   const limit = pageSize;
   const pages = Math.ceil(total / pageSize);
@@ -209,8 +209,8 @@ async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = 
     let sortClause = '';
     if (sortColumn) {
       const columnData = await getTableColumnData(tableName);
-      const foundColumnName = columnData.filter((col) => col.name === sortColumn);
-      if (foundColumnName.length === 1) {
+      const foundColumn = columnData.filter((col) => col.name === sortColumn);
+      if (foundColumn.length === 1) {
         sortClause = `order by ${sortColumn} ${['asc', 'desc'].includes(sortOrder) ? sortOrder : ''}`
       }
     }
@@ -267,9 +267,9 @@ async function getUuidById(tableName, userId, id) {
 async function getId(tableName, userId, uuid) {
   await validate(tableName, userId, uuid);
   const cacheContext = `${tableName}-uuid-id`;
-  let result = cacheService.fromCache(cacheContext, uuid);
-  if (result) {
-    return result;
+  const cacheResult = cacheService.fromCache(cacheContext, uuid);
+  if (cacheResult) {
+    return cacheResult;
   }
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
@@ -277,7 +277,7 @@ async function getId(tableName, userId, uuid) {
   const values = [userId, uuid];
   const results = await executeSqlQuery(sqlQuery, values);
   if (results.rowCount > 0) {
-    result = results.rows[0]['id'];
+    const result = results.rows[0]['id'];
     cacheService.cache(cacheContext, uuid, result);
     return result;
   }
@@ -285,9 +285,9 @@ async function getId(tableName, userId, uuid) {
 
 async function get(tableName, userId, uuid) {
   await validate(tableName, userId, uuid);
-  let result = cacheService.fromCache(getCacheContext(tableName, userId), uuid);
-  if (result) {
-    return Object.assign({}, result);
+  const cacheResult = cacheService.fromCache(getCacheContext(tableName, userId), uuid);
+  if (cacheResult) {
+    return Object.assign({}, cacheResult);
   }
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
@@ -295,10 +295,10 @@ async function get(tableName, userId, uuid) {
   const values = [userId, uuid];
   const results = await executeSqlQuery(sqlQuery, values);
   if (results.rowCount > 0) {
-    result = results.rows.map((row) => cleanseRow(row))[0];
+    const result = results.rows.map((row) => cleanseRow(row))[0];
     cacheService.cache(getCacheContext(tableName, userId), uuid, Object.assign({}, result));
+    return result;
   }
-  return result;
 }
 
 async function update(tableName, userId, uuid, body) {
@@ -342,15 +342,15 @@ async function hardDelete(tableName, userId, uuid) {
 async function getTypes() {
   const cacheId = 'ALL';
   const cacheContext = cacheService.CONTEXT.TYPES;
-  let result = cacheService.fromCache(cacheContext, cacheId);
-  if (result) {
-    return Object.assign({}, result);
+  const cacheResult = cacheService.fromCache(cacheContext, cacheId);
+  if (cacheResult) {
+    return Object.assign({}, cacheResult);
   }
   const sqlQuery = 'SELECT pg_type.typname as name, pg_enum.enumlabel as value FROM pg_type JOIN pg_enum ON pg_enum.enumtypid = pg_type.oid';
   const values = null;
   const sqlTypes = await executeSqlQuery(sqlQuery, values);
   if (sqlTypes.rowCount > 0) {
-    result = sqlTypes.rows;
+    const result = sqlTypes.rows;
     cacheService.cache(cacheContext, cacheId, Object.assign({}, result));
     return result;
   }
