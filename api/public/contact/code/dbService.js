@@ -170,13 +170,13 @@ async function validate(tableName, userId, uuid) {
   }
 }
 
-async function count(tableName, userId, searchColumn, searchTerm, exactSearch = true) {
+async function count(tableName, userId, searchColumn, searchTerm, searchExact = true) {
   let searchClause = '';
   let searchParam = '';
   if (searchTerm) {
-    searchParam = exactSearch ? searchTerm : `%${searchTerm}%`;
+    searchParam = searchExact ? searchTerm : `%${searchTerm}%`;
     searchColumn = searchColumn || getSearchColumn(tableName);
-    const searchOperation = exactSearch ? '=' : 'ilike';
+    const searchOperation = searchExact ? '=' : 'ilike';
     searchClause = `and ${searchColumn} ${searchOperation} $2`;
   }
   const createdByColumn = getCreatedByColumn(tableName);
@@ -190,8 +190,8 @@ async function count(tableName, userId, searchColumn, searchTerm, exactSearch = 
 }
 
 async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = {}) {
-  let { searchColumn, searchTerm, exactSearch, sortColumn, sortOrder } = searchOptions;
-  const total = await count(tableName, userId, searchColumn, searchTerm, exactSearch);
+  let { searchColumn, searchTerm, searchExact, sortColumn, sortOrder } = searchOptions;
+  const total = await count(tableName, userId, searchColumn, searchTerm, searchExact);
   const offset = page * pageSize;
   const limit = pageSize;
   const pages = Math.ceil(total / pageSize);
@@ -201,7 +201,7 @@ async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = 
     let searchClause = '';
     let searchParam = '';
     if (searchTerm) {
-      searchParam = exactSearch ? searchTerm : `%${searchTerm}%`;
+      searchParam = searchExact ? searchTerm : `%${searchTerm}%`;
       searchColumn = searchColumn || getSearchColumn(tableName);
       const searchOperation = exactSearch ? '=' : 'ilike';
       searchClause = `and ${searchColumn} ${searchOperation} $2`;
