@@ -378,9 +378,20 @@ paths:
       parameters:
         - in: query
           name: q
-          description: The search query
+          description: The search query term
           schema:
             type: string
+        - in: query
+          name: qc
+          description: The search query column
+          schema:
+            type: string
+        - in: query
+          name: qe
+          description: If true exact search, else fuzzy search
+          schema:
+            type: boolean
+            default: false
         - in: query
           name: page
           description: THe page number to search for

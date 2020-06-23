@@ -106,12 +106,14 @@ async function crudFunction(event) {
         let limit;
         let pageNo;
         if (event.queryStringParameters) {
-          const { q, page, pageSize } = event.queryStringParameters;
+          const { q, qc, qe, page, pageSize } = event.queryStringParameters;
           searchTerm = q || undefined;
+          searchColumn = qc || undefined;
+          searchExact = qe || false;
           limit = !isNaN(pageSize) ? Number(pageSize) : undefined;
           pageNo = !isNaN(page) ? Number(page) : undefined;
         }
-        result = await dbService.list(tableName, userId, null, searchTerm, false, limit, pageNo);
+        result = await dbService.list(tableName, userId, searchColumn, searchTerm, searchExact, limit, pageNo);
         result.results && result.results.map(data => mapService.dbToApi(tableName, userId, null, data));
       } else {
         result = await dbService.get(tableName, userId, uuid);
