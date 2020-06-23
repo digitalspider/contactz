@@ -176,7 +176,7 @@ async function count(tableName, userId, searchColumn, searchTerm, exactSearch = 
   if (searchTerm) {
     searchParam = exactSearch ? searchTerm : `%${searchTerm}%`;
     searchColumn = searchColumn || getSearchColumn(tableName);
-    const searchOperation = exactSearch ? '=' : 'like';
+    const searchOperation = exactSearch ? '=' : 'ilike';
     searchClause = `and ${searchColumn} ${searchOperation} $2`;
   }
   const createdByColumn = getCreatedByColumn(tableName);
@@ -202,7 +202,7 @@ async function list(tableName, userId, searchColumn, searchTerm, exactSearch = t
     if (searchTerm) {
       searchParam = exactSearch ? searchTerm : `%${searchTerm}%`;
       searchColumn = searchColumn || getSearchColumn(tableName);
-      const searchOperation = exactSearch ? '=' : 'like';
+      const searchOperation = exactSearch ? '=' : 'ilike';
       searchClause = `and ${searchColumn} ${searchOperation} $2`;
     }
     const createdByColumn = getCreatedByColumn(tableName);
