@@ -2,8 +2,7 @@ const _cache = {};
 
 const CONTEXT = {
   TYPES: 'types',
-  CONTACT_UUID_ID: 'contact-uuid-id',
-  ADDRESS_UUID_ID: 'address-uuid-id',
+  TABLE_COLUMN_DATA: 'table-column-data',
 };
 
 function init(context) {

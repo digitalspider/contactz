@@ -102,18 +102,22 @@ async function crudFunction(event) {
   switch (method) {
     case METHOD.GET:
       if (!uuid) {
-        let searchTerm;
         let limit;
         let pageNo;
+        let searchOptions;
         if (event.queryStringParameters) {
-          const { q, qc, qe, page, pageSize } = event.queryStringParameters;
-          searchTerm = q || undefined;
-          searchColumn = qc || undefined;
-          searchExact = qe || false;
+          const { q, qc, qe, sort, sortOrder, page, pageSize } = event.queryStringParameters;
           limit = !isNaN(pageSize) ? Number(pageSize) : undefined;
           pageNo = !isNaN(page) ? Number(page) : undefined;
+          searchOptions = {
+            searchTerm: q,
+            searchColumn: qc,
+            searchExact: qe || !q, // false if q is defined
+            sortColumn: sort,
+            sortOrder,
+          }
         }
-        result = await dbService.list(tableName, userId, searchColumn, searchTerm, searchExact, limit, pageNo);
+        result = await dbService.list(tableName, userId, limit, pageNo, searchOptions);
         result.results && result.results.map(data => mapService.dbToApi(tableName, userId, null, data));
       } else {
         result = await dbService.get(tableName, userId, uuid);

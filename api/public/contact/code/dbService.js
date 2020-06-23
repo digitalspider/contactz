@@ -85,11 +85,11 @@ function getUidColumn(tableName) {
   return [TABLE.TAG, TABLE.GROUPS].includes(tableName) ? COLUMN.NAME : COLUMN.UUID;
 }
 
-const columnDataCache = {};
-
 async function getTableColumnData(tableName) {
-  if (columnDataCache[tableName]) {
-    return columnDataCache[tableName];
+  const cacheContext = cacheService.CONTEXT.TABLE_COLUMN_DATA;
+  const result = cacheService.fromCache(cacheContext, tableName);
+  if (result) {
+    return result;
   }
   const sqlQuery = `select column_name,is_nullable,data_type from information_schema.columns where table_name = $1`;
   const values = [tableName];
@@ -105,7 +105,7 @@ async function getTableColumnData(tableName) {
       data_type: row.data_type,
     })
     );
-  columnDataCache[tableName] = columnData;
+  cacheService.cache(cacheContext, tableName, columnData);
   return columnData;
 }
 
@@ -189,8 +189,9 @@ async function count(tableName, userId, searchColumn, searchTerm, exactSearch = 
   return 0;
 }
 
-async function list(tableName, userId, searchColumn, searchTerm, exactSearch = true, pageSize = 20, page = 0) {
+async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = {}) {
   const total = await count(tableName, userId, searchColumn, searchTerm, exactSearch);
+  const { searchColumn, searchTerm, exactSearch, sortColumn, sortOrder } = searchOptions;
   const offset = page * pageSize;
   const limit = pageSize;
   const pages = Math.ceil(total / pageSize);
@@ -205,8 +206,16 @@ async function list(tableName, userId, searchColumn, searchTerm, exactSearch = t
       const searchOperation = exactSearch ? '=' : 'ilike';
       searchClause = `and ${searchColumn} ${searchOperation} $2`;
     }
+    let sortClause = '';
+    if (sortColumn) {
+      const columnData = await getTableColumnData(tableName);
+      const foundColumnName = columnData.filter((col) => col.name === sortColumn);
+      if (foundColumnName.length === 1) {
+        sortClause = `order by ${sortColumn} ${['asc', 'desc'].includes(sortOrder) ? sortOrder : ''}`
+      }
+    }
     const createdByColumn = getCreatedByColumn(tableName);
-    const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 ${searchClause} and ${DELETED_AT_CLAUSE} offset ${offset} limit ${limit}`;
+    const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 ${searchClause} and ${DELETED_AT_CLAUSE} ${sortClause} offset ${offset} limit ${limit}`;
     const values = searchParam ? [userId, searchParam] : [userId];
     const results = await executeSqlQuery(sqlQuery, values);
     formattedResults = results.rows.map((row) => cleanseRow(row));
@@ -332,7 +341,8 @@ async function hardDelete(tableName, userId, uuid) {
 
 async function getTypes() {
   const cacheId = 'ALL';
-  let result = cacheService.fromCache(cacheService.CONTEXT.TYPES, cacheId);
+  const cacheContext = cacheService.CONTEXT.TYPES;
+  let result = cacheService.fromCache(cacheContext, cacheId);
   if (result) {
     return Object.assign({}, result);
   }
@@ -341,7 +351,7 @@ async function getTypes() {
   const sqlTypes = await executeSqlQuery(sqlQuery, values);
   if (sqlTypes.rowCount > 0) {
     result = sqlTypes.rows;
-    cacheService.cache(cacheService.CONTEXT.TYPES, cacheId, Object.assign({}, result));
+    cacheService.cache(cacheContext, cacheId, Object.assign({}, result));
     return result;
   }
 }
