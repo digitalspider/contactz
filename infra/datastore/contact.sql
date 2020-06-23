@@ -189,7 +189,7 @@ insert into contact (created_by, name) VALUES (1,'first contact');
 update org set contact_id=1 where username='guest';
 
 insert into groups (created_by, name) VALUES (1, 'custom');
-insert into contact (created_by, name, groups, relation_data, gender) VALUES (1,'second contact', '{1, 4}','[{"rid":"parent", "cid": "1"}]', 'female');
+insert into contact (created_by, name, groups, relation_data, gender) VALUES (1,'third contact', '{1, 4}','[{"type":"parent", "cid": "1"},{"type":"child", "cid": "2"}]', 'female');
 
 insert into address (created_by, contact_id, street, postcode) VALUES (1,1,'street2',2000);
 insert into address (created_by, contact_id, street, postcode) VALUES (1,1,'street3',3000);
