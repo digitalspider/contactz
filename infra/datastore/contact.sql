@@ -117,6 +117,10 @@ create table contact (
   foreign key (shared_link_id) references contact(id)
 );
 
+create or replace function search(contact) returns text AS $$
+  select $1.name || ' ' || $1.preferred_name || ' ' || $1.email || ' ' || $1.mobile || ' ' || $1.notes
+$$ LANGUAGE SQL;
+
 create table invite (
   id serial primary key,
   uuid uuid not null unique DEFAULT uuid_generate_v4(),
@@ -169,6 +173,10 @@ create table address (
   deleted_at timestamp
 );
 
+create or replace function search(address) returns text AS $$
+  select $1.name || ' ' || $1.street || ' ' || $1.suburb || ' ' || $1.postcode || ' ' || $1.state
+$$ LANGUAGE SQL;
+
 alter table users add constraint fk_user_contact foreign key (contact_id) REFERENCES contact(id) ON DELETE CASCADE;
 alter table contact add constraint fk_contact_address foreign key (address_id) REFERENCES address(id) ON DELETE CASCADE;
 
@@ -188,6 +196,6 @@ insert into address (created_by, contact_id, street, postcode) VALUES (1,1,'stre
 insert into address (created_by, contact_id, street, postcode) VALUES (1,2,'street4',4000);
 insert into address (created_by, contact_id, street, postcode) VALUES (1,2,'street5',5000);
 
-select c.id, c.name, c.gender, c.groups, c.relation_data from contact c, users u where c.created_by=u.id and u.id=1 order by sort_order,id;
-select c.id, c.name, a.street, a.postcode from contact c, address a where a.contact_id=c.id order by c.sort_order,id;
+select c.id, c.name, c.gender, c.groups, c.relation_data, c.search from contact c, users u where c.created_by=u.id and u.id=1 order by sort_order,id;
+select c.id, c.name, a.street, a.postcode, a.search from contact c, address a where a.contact_id=c.id order by c.sort_order,id;
 select id,name,groups from contact where '4' = ANY(groups);

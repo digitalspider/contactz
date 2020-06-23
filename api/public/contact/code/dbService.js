@@ -76,7 +76,7 @@ async function executeSqlQuery(sqlQuery, values) {
 }
 
 function getSearchColumn(tableName) {
-  return [TABLE.USERS].includes(tableName) ? COLUMN.USERNAME : COLUMN.NAME;
+  return [TABLE.CONTACT, TABLE.ADDRESS].includes(tableName) ? `${tableName}.search` : [TABLE.USERS].includes(tableName) ? COLUMN.USERNAME : COLUMN.NAME;
 }
 function getCreatedByColumn(tableName) {
   return [TABLE.USERS].includes(tableName) ? COLUMN.ID : COLUMN.CREATED_BY;
