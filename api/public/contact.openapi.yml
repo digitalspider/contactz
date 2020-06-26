@@ -1741,6 +1741,8 @@ components:
     contact:
       type: object
       description: Structure of the contact information
+      required:
+        - name
       properties:
         uuid:
           $ref: "#/components/schemas/entityId"
@@ -1774,6 +1776,10 @@ components:
         address_id:
           type: string
           description: the selected primary address
+        relation_data:
+          $ref: "#/components/schemas/relationData"
+        other_data:
+          $ref: "#/components/schemas/otherData"
         addresses:
           type: array
           items:
@@ -1789,15 +1795,14 @@ components:
         tags:
           type: array
           items:
-            type: number
-            description: the IDs of the tags
+            type: string
+            description: the names of the tags to add/create
         groups:
           type: array
           items:
-            type: number
-            description: the IDs of the groups
-      required:
-        - name
+            type: string
+            description: the names of the groups to add/create
+
     contactList:
       type: object
       properties:
@@ -1820,7 +1825,6 @@ components:
         - contact_id
         - name
         - street
-        - state
         - postcode
       properties:
         uuid:
@@ -1859,7 +1863,6 @@ components:
       required:
         - name
         - street
-        - state
         - postcode
       properties:
         uuid:
@@ -1901,6 +1904,64 @@ components:
       description: A date in YYYY-MM-DD format.
       pattern: ^\d{4}-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])$
       example: "2020-12-25"
+
+    relationData:
+      type: array
+      items:
+        $ref: "#/components/schemas/relation"
+    relation:
+      type: object
+      required:
+        - type
+        - cid
+      properties:
+        type:
+          $ref: "#/components/schemas/relationTypeEnum"
+        cid:
+          type: string
+          description: The ID of the contact
+    relationTypeEnum:
+      type: string
+      description: The types of relationships allowed
+      enum:
+        - parent
+        - child
+        - adopted
+        - spouse
+        - closefriend
+        - ex
+        - sibling
+        - manager
+        - worker
+        - peer
+
+    otherData:
+      type: array
+      items:
+        $ref: "#/components/schemas/otherInfo"
+    otherInfo:
+      type: object
+      required:
+        - label
+        - value
+      properties:
+        label:
+          type: string
+          description: The label for this information
+        type:
+          $ref: "#/components/schemas/otherTypeEnum"
+        value:
+          type: string
+          description: The value for this information
+    otherTypeEnum:
+      type: string
+      description: The types of other fields allowed
+      enum:
+        - text
+        - date
+        - email
+        - phone
+
     addressList:
       type: object
       properties:

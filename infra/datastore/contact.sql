@@ -19,7 +19,7 @@ drop type if exists contact_method;
 drop type if exists request_status;
 
 CREATE TYPE user_role AS ENUM ('admin', 'superuser', 'editor', 'viewer', 'none');
-CREATE TYPE relation AS ENUM ('parent', 'child', 'adpoted', 'spouse', 'closefriend', 'ex', 'sibling', 'manager', 'worker', 'peer');
+CREATE TYPE relation AS ENUM ('parent', 'child', 'adopted', 'spouse', 'closefriend', 'ex', 'sibling', 'manager', 'worker', 'peer');
 CREATE TYPE gender AS ENUM ('male', 'female');
 CREATE TYPE contact_method AS ENUM ('email', 'sms', 'other');
 CREATE TYPE request_status AS ENUM ('request', 'confirmed', 'denied', 'expired');
