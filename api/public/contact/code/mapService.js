@@ -111,7 +111,7 @@ async function covertNamesToIds(tableName, userId, nameList) {
     }
   }).filter((id) => id);
   const promises = newValues.map(async (newName) => {
-    const insertResult = await dbService.create(tableName, userId, newName);
+    const insertResult = await dbService.create(tableName, userId, { name: newName });
     if (insertResult) {
       idList.push(insertResult.id);
     }
