@@ -120,7 +120,7 @@ async function crudFunction(event) {
         result = await dbService.list(tableName, userId, limit, pageNo, searchOptions);
         if (result.results) {
           result.results.map(data => mapService.dbToApi(tableName, userId, null, data));
-          result.results.map(data => delete data.id);
+          result.results.map(data => { delete data.id; return data });
         }
       } else {
         result = await dbService.get(tableName, userId, uuid);
