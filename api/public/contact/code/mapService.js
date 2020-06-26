@@ -64,8 +64,7 @@ async function dbToApiContact(userId, uuid, body) {
     }
     const pageSize = undefined; // TODO: Wont show more than 20 addresses?
     const addresses = (await dbService.list(TABLE.ADDRESS, userId, pageSize, 0, searchOptions)).results;
-    body.addresses = addresses.map((address) => { delete address.id; return address });
-
+    body.addresses = addresses.map((address) => { delete address.id; return address; });
     body.tags = await convertIdsToNames(TABLE.TAG, userId, body.tags);
     body.groups = await convertIdsToNames(TABLE.GROUPS, userId, body.groups);
   }
