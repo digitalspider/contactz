@@ -231,7 +231,6 @@ async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = 
 }
 
 function cleanseRow(row) {
-  delete row.id;
   delete row.password;
   delete row[COLUMN.CREATED_BY];
   delete row[COLUMN.DELETED_AT];
@@ -241,9 +240,10 @@ async function create(tableName, userId, body) {
   const uidColumn = getUidColumn(tableName);
   const insertData = await getInsertData(userId, tableName, body);
   logService.debug('insertData', insertData);
-  const sqlQuery = `insert into ${tableName} (${insertData.columnNames}) VALUES (${insertData.params}) RETURNING ${uidColumn}`;
+  const sqlQuery = `insert into ${tableName} (${insertData.columnNames}) VALUES (${insertData.params}) RETURNING id, ${uidColumn}`;
   const results = await executeSqlQuery(sqlQuery, insertData.values);
-  return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
+  const resultRow = results.rowCount > 0 ? results.rows[0] : null;
+  return resultRow ? { id: resultRow[id], [uidColumn]: resultRow[uidColumn] } : null;
 }
 
 async function getUuidById(tableName, userId, id) {
@@ -309,11 +309,12 @@ async function update(tableName, userId, uuid, body) {
   const uidColumn = getUidColumn(tableName);
   const updateData = await getUpdateData(userId, tableName, body);
   logService.debug('updateData', updateData);
-  const sqlQuery = `update ${tableName} set ${updateData.params} where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING ${uidColumn}`;
+  const sqlQuery = `update ${tableName} set ${updateData.params} where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING id, ${uidColumn}`;
   const values = [userId, uuid, ...updateData.values];
   logService.debug('updateDataValues', values);
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
+  const resultRow = results.rowCount > 0 ? results.rows[0] : null;
+  return resultRow ? { id: resultRow[id], [uidColumn]: resultRow[uidColumn] } : null;
 }
 
 async function softDelete(tableName, userId, uuid) {
@@ -322,10 +323,11 @@ async function softDelete(tableName, userId, uuid) {
   cacheService.invalidate(`${tableName}-uuid-id`, uuid);
   const createdByColumn = getCreatedByColumn(tableName);
   const uidColumn = getUidColumn(tableName);
-  const sqlQuery = `update ${tableName} set ${COLUMN.DELETED_AT} = now() where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING ${uidColumn}`;
+  const sqlQuery = `update ${tableName} set ${COLUMN.DELETED_AT} = now() where ${createdByColumn} = $1 and ${uidColumn} = $2 RETURNING id, ${uidColumn}`;
   const values = [userId, uuid];
   const results = await executeSqlQuery(sqlQuery, values);
-  return results.rowCount > 0 ? { [uidColumn]: results.rows[0][uidColumn] } : null;
+  const resultRow = results.rowCount > 0 ? results.rows[0] : null;
+  return resultRow ? { id: resultRow[id], [uidColumn]: resultRow[uidColumn] } : null;
 }
 
 async function hardDelete(tableName, userId, uuid) {

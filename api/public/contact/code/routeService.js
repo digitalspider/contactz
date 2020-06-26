@@ -118,16 +118,21 @@ async function crudFunction(event) {
           }
         }
         result = await dbService.list(tableName, userId, limit, pageNo, searchOptions);
-        result.results && result.results.map(data => mapService.dbToApi(tableName, userId, null, data));
+        if (result.results) {
+          result.results.map(data => mapService.dbToApi(tableName, userId, null, data));
+          result.results.map(data => delete data.id);
+        }
       } else {
         result = await dbService.get(tableName, userId, uuid);
         await mapService.dbToApi(tableName, userId, uuid, result);
+        delete result.id;
       }
       break;
     case METHOD.POST:
       await mapService.apiToDb(tableName, userId, null, body);
       result = await dbService.create(tableName, userId, body);
       await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
+      delete result.id;
       break;
     case METHOD.PUT:
       if (!uuid) {
@@ -135,6 +140,7 @@ async function crudFunction(event) {
       }
       await mapService.apiToDb(tableName, userId, uuid, body);
       result = await dbService.update(tableName, userId, uuid, body);
+      delete result.id;
       break;
     case METHOD.DELETE:
       if (!uuid) {

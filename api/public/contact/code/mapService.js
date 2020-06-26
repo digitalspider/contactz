@@ -15,6 +15,10 @@ async function dbToApi(tableName, userId, uuid, body) {
 async function apiToDb(_tableName, userId, _uuid, body) {
   await convertToDbId(userId, body, 'contact_id', TABLE.CONTACT);
   await convertToDbId(userId, body, 'address_id', TABLE.ADDRESS);
+  switch (tableName) {
+    case TABLE.CONTACT:
+      return apiToDbContact(userId, uuid, body);
+  }
   return body;
 }
 
@@ -58,9 +62,22 @@ async function dbToApiContact(userId, uuid, body) {
       searchTerm: contactId,
       searchExact: true,
     }
-    let pageSize = undefined; // TODO: Wont show more than 20 addresses?
-    const contacts = await dbService.list(TABLE.ADDRESS, userId, pageSize, 0, searchOptions);
-    body.addresses = contacts.results;
+    const pageSize = undefined; // TODO: Wont show more than 20 addresses?
+    const addresses = (await dbService.list(TABLE.ADDRESS, userId, pageSize, 0, searchOptions)).results;
+    body.addresses = addresses.map((address) => { delete address.id; return address });
+
+    body.tags = await convertIdsToNames(TABLE.TAG, userId, body.tags);
+    body.groups = await convertIdsToNames(TABLE.GROUPS, userId, body.groups);
+  }
+  return body;
+}
+
+async function apiToDbContact(userId, body, _uuid) {
+  if (body.tags) {
+    body.groups = await covertNamesToIds(TABLE.TAG, userId, body.tags);
+  }
+  if (body.groups) {
+    body.groups = await covertNamesToIds(TABLE.GROUPS, userId, body.groups);
   }
   return body;
 }
@@ -81,6 +98,41 @@ async function apiToDbPostContact(userId, body, uuid) {
       await Promise.all(promises);
     }
   }
+}
+
+async function covertNamesToIds(tableName, userId, nameList) {
+  const pageSize = undefined; // TODO: Wont show more than 20 items?
+  const dbData = (await dbService.list(tableName, userId, pageSize)).results;
+  const newValues = [];
+  const idList = nameList.map((name) => {
+    const dbObject = dbData.find((dbRow) => dbRow.name === name);
+    if (dbObject) {
+      return dbObject.id;
+    } else {
+      newValues.push(name);
+    }
+  }).filter((id) => id);
+  const promises = [];
+  newValues.forEach(promises.push(async (newName) => {
+    const insertResult = await dbService.create(tableName, userId, newName);
+    if (insertResult) {
+      idList.push(insertResult.id);
+    }
+  }));
+  await Promise.allSettled(promises);
+  return idList;
+}
+
+async function convertIdsToNames(tableName, userId, idList) {
+  if (!idList) {
+    return idList;
+  }
+  const pageSize = undefined; // TODO: Wont show more than 20 items?
+  const dbData = (await dbService.list(tableName, userId, pageSize)).results;
+  return idList.map((id) => {
+    const found = dbData.find((dbItem) => dbItem.id === id);
+    return found && found.name;
+  }).filter((id) => id);
 }
 
 module.exports = { dbToApi, apiToDb, apiToDbPost };
