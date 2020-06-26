@@ -73,7 +73,7 @@ async function dbToApiContact(userId, uuid, body) {
 
 async function apiToDbContact(userId, body, _uuid) {
   if (body.tags) {
-    body.groups = await covertNamesToIds(TABLE.TAG, userId, body.tags);
+    body.tags = await covertNamesToIds(TABLE.TAG, userId, body.tags);
   }
   if (body.groups) {
     body.groups = await covertNamesToIds(TABLE.GROUPS, userId, body.groups);
