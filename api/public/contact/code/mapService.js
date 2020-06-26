@@ -12,7 +12,7 @@ async function dbToApi(tableName, userId, uuid, body) {
   return body;
 }
 
-async function apiToDb(tableName, userId, _uuid, body) {
+async function apiToDb(tableName, userId, uuid, body) {
   await convertToDbId(userId, body, 'contact_id', TABLE.CONTACT);
   await convertToDbId(userId, body, 'address_id', TABLE.ADDRESS);
   switch (tableName) {
