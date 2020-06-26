@@ -17,7 +17,7 @@ async function apiToDb(tableName, userId, uuid, body) {
   await convertToDbId(userId, body, 'address_id', TABLE.ADDRESS);
   switch (tableName) {
     case TABLE.CONTACT:
-      return apiToDbContact(userId, uuid, body);
+      return apiToDbContact(userId, body, uuid);
   }
   return body;
 }
@@ -110,13 +110,12 @@ async function covertNamesToIds(tableName, userId, nameList) {
       newValues.push(name);
     }
   }).filter((id) => id);
-  const promises = [];
-  newValues.forEach(promises.push(async (newName) => {
+  const promises = newValues.map(async (newName) => {
     const insertResult = await dbService.create(tableName, userId, newName);
     if (insertResult) {
       idList.push(insertResult.id);
     }
-  }));
+  });
   await Promise.allSettled(promises);
   return idList;
 }
