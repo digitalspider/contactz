@@ -192,7 +192,7 @@ async function count(tableName, userId, searchColumn, searchTerm, searchExact = 
 async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = {}) {
   let { searchColumn, searchTerm, searchExact, sortColumn, sortOrder } = searchOptions;
   const total = await count(tableName, userId, searchColumn, searchTerm, searchExact);
-  let paginationClause;
+  let paginationClause = '';
   if (pageSize) {
     const offset = page * pageSize;
     const limit = pageSize;
