@@ -192,8 +192,12 @@ async function count(tableName, userId, searchColumn, searchTerm, searchExact = 
 async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = {}) {
   let { searchColumn, searchTerm, searchExact, sortColumn, sortOrder } = searchOptions;
   const total = await count(tableName, userId, searchColumn, searchTerm, searchExact);
-  const offset = page * pageSize;
-  const limit = pageSize;
+  let paginationClause;
+  if (pageSize) {
+    const offset = page * pageSize;
+    const limit = pageSize;
+    paginationClause = `offset ${offset} limit ${limit}`;
+  }
   const pages = Math.ceil(total / pageSize);
   let formattedResults = [];
   if (total > 0) {
@@ -215,7 +219,7 @@ async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = 
       }
     }
     const createdByColumn = getCreatedByColumn(tableName);
-    const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 ${searchClause} and ${DELETED_AT_CLAUSE} ${sortClause} offset ${offset} limit ${limit}`;
+    const sqlQuery = `select * from ${tableName} where ${createdByColumn} = $1 ${searchClause} and ${DELETED_AT_CLAUSE} ${sortClause} ${paginationClause}`;
     const values = searchParam ? [userId, searchParam] : [userId];
     const results = await executeSqlQuery(sqlQuery, values);
     formattedResults = results.rows.map((row) => cleanseRow(row));

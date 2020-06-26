@@ -62,7 +62,7 @@ async function dbToApiContact(userId, uuid, body) {
       searchTerm: contactId,
       searchExact: true,
     }
-    const pageSize = undefined; // TODO: Wont show more than 20 addresses?
+    const pageSize = null; // Bypass pagination
     const addresses = (await dbService.list(TABLE.ADDRESS, userId, pageSize, 0, searchOptions)).results;
     body.addresses = addresses.map((address) => { delete address.id; return address; });
     body.tags = await convertIdsToNames(TABLE.TAG, userId, body.tags);
@@ -100,7 +100,7 @@ async function apiToDbPostContact(userId, body, uuid) {
 }
 
 async function covertNamesToIds(tableName, userId, nameList) {
-  const pageSize = undefined; // TODO: Wont show more than 20 items?
+  const pageSize = null; // Bypass pagination
   const dbData = (await dbService.list(tableName, userId, pageSize)).results;
   const newValues = [];
   const idList = nameList.map((name) => {
@@ -126,7 +126,7 @@ async function convertIdsToNames(tableName, userId, idList) {
   if (!idList) {
     return idList;
   }
-  const pageSize = undefined; // TODO: Wont show more than 20 items?
+  const pageSize = null; // Bypass pagination
   const dbData = (await dbService.list(tableName, userId, pageSize)).results;
   return idList.map((id) => {
     const found = dbData.find((dbItem) => dbItem.id === id);
