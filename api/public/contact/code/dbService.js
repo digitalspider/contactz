@@ -247,7 +247,7 @@ async function create(tableName, userId, body) {
   const sqlQuery = `insert into ${tableName} (${insertData.columnNames}) VALUES (${insertData.params}) RETURNING id, ${uidColumn}`;
   const results = await executeSqlQuery(sqlQuery, insertData.values);
   const resultRow = results.rowCount > 0 ? results.rows[0] : null;
-  return resultRow ? { id: resultRow[id], [uidColumn]: resultRow[uidColumn] } : null;
+  return resultRow ? { id: resultRow.id, [uidColumn]: resultRow[uidColumn] } : null;
 }
 
 async function getUuidById(tableName, userId, id) {
@@ -318,7 +318,7 @@ async function update(tableName, userId, uuid, body) {
   logService.debug('updateDataValues', values);
   const results = await executeSqlQuery(sqlQuery, values);
   const resultRow = results.rowCount > 0 ? results.rows[0] : null;
-  return resultRow ? { id: resultRow[id], [uidColumn]: resultRow[uidColumn] } : null;
+  return resultRow ? { id: resultRow.id, [uidColumn]: resultRow[uidColumn] } : null;
 }
 
 async function softDelete(tableName, userId, uuid) {
@@ -331,7 +331,7 @@ async function softDelete(tableName, userId, uuid) {
   const values = [userId, uuid];
   const results = await executeSqlQuery(sqlQuery, values);
   const resultRow = results.rowCount > 0 ? results.rows[0] : null;
-  return resultRow ? { id: resultRow[id], [uidColumn]: resultRow[uidColumn] } : null;
+  return resultRow ? { id: resultRow.id, [uidColumn]: resultRow[uidColumn] } : null;
 }
 
 async function hardDelete(tableName, userId, uuid) {
