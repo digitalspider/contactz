@@ -72,12 +72,8 @@ async function dbToApiContact(userId, uuid, body) {
 }
 
 async function apiToDbContact(userId, body, _uuid) {
-  if (body.tags) {
-    body.tags = await covertNamesToIds(TABLE.TAG, userId, body.tags);
-  }
-  if (body.groups) {
-    body.groups = await covertNamesToIds(TABLE.GROUPS, userId, body.groups);
-  }
+  body.tags = await covertNamesToIds(TABLE.TAG, userId, body.tags);
+  body.groups = await covertNamesToIds(TABLE.GROUPS, userId, body.groups);
   return body;
 }
 
@@ -100,6 +96,9 @@ async function apiToDbPostContact(userId, body, uuid) {
 }
 
 async function covertNamesToIds(tableName, userId, nameList) {
+  if (!nameList) {
+    return nameList;
+  }
   const pageSize = null; // Bypass pagination
   const dbData = (await dbService.list(tableName, userId, pageSize)).results;
   const newValues = [];
