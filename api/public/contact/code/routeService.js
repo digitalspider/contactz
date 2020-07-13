@@ -1,7 +1,9 @@
 const userService = require('./userService');
+const httpService = require('./httpService');
 const dbService = require('./dbService');
 const mapService = require('./mapService');
 const logService = require('./logService');
+const constants = require('./constants');
 
 const RESERVED_TABLE_NAMES = ['group', 'role', 'user'];
 const METHOD = {
@@ -10,9 +12,12 @@ const METHOD = {
   PUT: 'PUT',
   DELETE: 'DELETE',
 }
+const { HTTP_STATUS } = constants;
+const { NotFoundError, BadRequestError } = httpService;
 
-async function route(event) {
-  const pathParts = event.path ? event.path.split('/') : null;
+async function route(req) {
+  const { baseUrl: path } = req;
+  const pathParts = path ? path.split('/') : null;
   const pathContext = pathParts.length > 1 ? pathParts[1] : null;
   logService.info('pathContext', pathContext);
   if (!pathContext) {
@@ -22,30 +27,30 @@ async function route(event) {
     case 'status':
       return { 'success': true };
     case 'user':
-      return routeUser(event);
+      return routeUser(req);
     case 'type':
-      return routeType(event);
+      return routeType(req);
     case 'contact':
     case 'org':
     case 'address':
     case 'tag':
     case 'group':
-      return crudFunction(event);
+      return crudFunction(req);
     default:
-      throw new Error(`Invalid request. Path is invalid. path=${event.path}`);
+      throw new NotFoundError(`Invalid request. Path is invalid. path=${path}`);
   }
 }
 
-async function routeUser(event) {
-  const method = event.httpMethod;
-  const pathParts = event.path ? event.path.split('/') : null;
-  const body = typeof event.body === 'string' ? JSON.parse(event.body) : undefined;
+async function routeUser(req) {
+  const { baseUrl: path, method, body: bodyValue } = req;
+  const pathParts = path ? path.split('/') : null;
+  const body = typeof bodyValue === 'string' ? JSON.parse(bodyValue) : bodyValue;
   if (method !== METHOD.POST) {
-    throw new Error(`Invalid request method: ${method}`);
+    throw new BadRequestError(`Invalid request method: ${method}`, HTTP_STATUS.METHOD_NOT_ALLOWED);
   }
   const userAction = pathParts.length > 2 ? pathParts[2] : null;
   if (!userAction) {
-    throw new Error('Invalid request, no user action provided');
+    throw new NotFoundError('Invalid request, no user action provided');
   }
   switch (userAction) {
     case 'register':
@@ -53,20 +58,20 @@ async function routeUser(event) {
     case 'login':
       return userService.login(body);
     case 'logout':
-      const userUuid = event.requestContext.authorizer && event.requestContext.authorizer.principalId;
+      const userUuid = req.user;
       return userService.logout(userUuid);
     case 'refresh':
-      return userService.refreshToken(event.headers);
+      return userService.refreshToken(req.headers);
     default:
-      throw new Error(`Invalid request. Unknown userAction: ${userAction}`);
+      throw new NotFoundError(`Invalid request. Unknown userAction: ${userAction}`);
   }
 }
 
-async function routeType(event) {
-  const method = event.httpMethod;
-  const pathParts = event.path ? event.path.split('/') : null;
+async function routeType(req) {
+  const { baseUrl: path, method } = req;
+  const pathParts = path ? path.split('/') : null;
   if (method !== METHOD.GET) {
-    throw new Error(`Invalid request method: ${method}`);
+    throw new BadRequestError(`Invalid request method: ${method}`, HTTP_STATUS.METHOD_NOT_ALLOWED);
   }
   const typeName = pathParts.length > 2 ? pathParts[2] : null;
   const types = await dbService.getTypes();
@@ -83,21 +88,21 @@ async function routeType(event) {
   return results;
 }
 
-async function crudFunction(event) {
-  const method = event.httpMethod;
-  const pathParts = event.path ? event.path.split('/') : null;
+async function crudFunction(req) {
+  const { baseUrl: path, method, body: bodyValue } = req;
+  const pathParts = path ? path.split('/') : null;
+  const body = typeof bodyValue === 'string' ? JSON.parse(bodyValue) : bodyValue;
   const pathContext = pathParts.length > 1 ? pathParts[1] : null;
   const tableName = RESERVED_TABLE_NAMES.includes(pathContext) ? pathContext + 's' : pathContext;
-  const body = typeof event.body === 'string' ? JSON.parse(event.body) : undefined;
   let result;
 
-  const userUuid = event.requestContext.authorizer.principalId;
+  const userUuid = req.user;
   const user = await userService.getUserByUuid(userUuid);
   if (!user) {
-    throw new Error('Authorization failed. No user available in request');
+    throw new BadRequestError('Authorization failed. No user available in request', HTTP_STATUS.UNAUTHORIZED);
   }
   const userId = user.id;
-  const uuid = event.pathParameters ? event.pathParameters.id : null;
+  const uuid = req.params ? req.params.id : null;
   logService.debug(`userId=${userId}. id=${uuid}`);
   switch (method) {
     case METHOD.GET:
@@ -105,8 +110,8 @@ async function crudFunction(event) {
         let limit;
         let pageNo;
         let searchOptions;
-        if (event.queryStringParameters) {
-          const { q, qc, qe, sort, sortOrder, page, pageSize } = event.queryStringParameters;
+        if (req.query) {
+          const { q, qc, qe, sort, sortOrder, page, pageSize } = req.query;
           limit = !isNaN(pageSize) ? Number(pageSize) : undefined;
           pageNo = !isNaN(page) ? Number(page) : undefined;
           searchOptions = {
@@ -136,7 +141,7 @@ async function crudFunction(event) {
       break;
     case METHOD.PUT:
       if (!uuid) {
-        throw new Error('Invalid request, no ID provided');
+        throw new BadR('Invalid request, no ID provided');
       }
       await mapService.apiToDb(tableName, userId, uuid, body);
       result = await dbService.update(tableName, userId, uuid, body);

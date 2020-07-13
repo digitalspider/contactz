@@ -33,11 +33,11 @@ class BadRequestError extends Error {
   }
 }
 
-function sendResponseOk(body = {}, headers = {}, isBase64Encoded) {
-  return sendResponse(httpStatus.OK, body, headers, isBase64Encoded);
+function getResponseOk(body = {}, headers = {}, isBase64Encoded) {
+  return getResponse(httpStatus.OK, body, headers, isBase64Encoded);
 }
 
-function sendResponseError(err, headers = {}) {
+function getResponseError(err, headers = {}) {
   const errorBody = {
     message: err.message || '',
     code: err.code || undefined,
@@ -45,7 +45,7 @@ function sendResponseError(err, headers = {}) {
     timestamp: err.timestamp || moment().format(moment.HTML5_FMT.DATETIME_LOCAL_MS),
   };
   const statusCode = err.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
-  return sendResponse(statusCode, errorBody, headers);
+  return getResponse(statusCode, errorBody, headers);
 }
 
 /**
@@ -57,7 +57,7 @@ function sendResponseError(err, headers = {}) {
  * @param {object} headers any additional headers to add
  * @param {boolean} isBase64Encoded set if payload is encoded, default=false
  */
-function sendResponse(statusCode, body = {}, headers = {}, isBase64Encoded = false) {
+function getResponse(statusCode, body = {}, headers = {}, isBase64Encoded = false) {
   // For exports and images
   if (['application/pdf', 'text/csv'].includes(headers['Accept'])) {
     headers['Content-Type'] = headers['Accept'];
@@ -79,4 +79,4 @@ function sendResponse(statusCode, body = {}, headers = {}, isBase64Encoded = fal
   return response;
 }
 
-module.exports = { sendResponse, sendResponseOk, sendResponseError, NotFoundError, BadRequestError };
+module.exports = { getResponse, getResponseOk, getResponseError, NotFoundError, BadRequestError };
