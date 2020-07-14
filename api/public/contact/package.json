@@ -8,6 +8,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node_modules/nodemon/bin/nodemon.js index.js",
+    "start:prod": "node index.js",
     "build": "babel src -d lib",
     "test": "jest"
   },

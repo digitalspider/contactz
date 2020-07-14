@@ -5,7 +5,7 @@ const express = require('express');
 
 const app = express();
 app.use('*', route);
-app.listen(8000);
+app.listen(process.env.APP_PORT || 3000);
 
 async function route(req, res, next) {
   const { method, protocol, baseUrl: path, params, query, headers, body } = req;

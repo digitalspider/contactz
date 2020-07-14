@@ -1,0 +1,32 @@
+version: "3"
+services:
+  web:
+    build: .
+    image: contacts:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - contacts
+    depends_on:
+      - db
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: contacts
+      DB_USER: contacts
+      DB_PASS: contacts
+  db:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_USER: contacts
+      POSTGRES_PASSWORD: contacts
+      POSTGRES_DB: contacts
+    volumes:
+      - ~/data/contacts:/var/lib/postgresql/data
+    ports:
+      - 5321:5432
+    networks:
+      - contacts
+
+networks:
+  contacts:
