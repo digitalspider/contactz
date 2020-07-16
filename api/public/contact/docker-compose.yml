@@ -10,7 +10,7 @@ services:
     depends_on:
       - db
     environment:
-      DB_HOST: postgres
+      DB_HOST: db
       DB_PORT: 5432
       DB_NAME: contacts
       DB_USER: contacts

@@ -4,6 +4,7 @@ const secretService = require('./secretService');
 const cacheService = require('./cacheService');
 const logService = require('./logService');
 const constants = require('./constants');
+const { dbSecret, dbHost, dbPort, dbName, dbUser, dbPass } = require('./config');
 const httpStatus = constants.HTTP_STATUS;
 
 const TABLE = {
@@ -32,11 +33,13 @@ let dbPool;
 
 async function init() {
   if (!dbPool) {
-    const DB_SECRET = process.env.DB_SECRET;
-    if (!DB_SECRET) {
-      throw new Error('Application has not been initialized. Environment variable DB_SECRET is missing');
-    }
-    const dbConfig = await secretService.getSecret(DB_SECRET);
+    const dbConfig = dbSecret ? await secretService.getSecret(DB_SECRET) : {
+      username: dbUser,
+      password: dbPass,
+      dbname: dbName,
+      host: dbHost,
+      port: dbPort,
+    };
     if (!dbConfig) {
       throw new Error(`Application has not been initialized. SecretManager variable is missing: ${DB_SECRET}`);
     }
