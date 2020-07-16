@@ -33,7 +33,7 @@ let dbPool;
 
 async function init() {
   if (!dbPool) {
-    const dbConfig = dbSecret ? await secretService.getSecret(DB_SECRET) : {
+    const dbConfig = dbSecret ? await secretService.getSecret(dbSecret) : {
       username: dbUser,
       password: dbPass,
       dbname: dbName,
@@ -41,7 +41,7 @@ async function init() {
       port: dbPort,
     };
     if (!dbConfig) {
-      throw new Error(`Application has not been initialized. SecretManager variable is missing: ${DB_SECRET}`);
+      throw new Error(`Application has not been initialized. SecretManager variable is missing: ${dbSecret}`);
     }
     const config = {
       user: dbConfig.username,
