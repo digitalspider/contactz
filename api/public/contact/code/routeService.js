@@ -18,7 +18,7 @@ const { NotFoundError, BadRequestError } = httpService;
 async function route(req) {
   const { baseUrl: path } = req;
   const pathParts = path ? path.split('/') : null;
-  const pathContext = pathParts.length > 1 ? pathParts[1] : null;
+  const pathContext = pathParts && pathParts.length > 1 ? pathParts[1] : null;
   logService.info('pathContext', pathContext);
   if (!pathContext) {
     return { 'success': true };
@@ -48,7 +48,7 @@ async function routeUser(req) {
   if (method !== METHOD.POST) {
     throw new BadRequestError(`Invalid request method: ${method}`, HTTP_STATUS.METHOD_NOT_ALLOWED);
   }
-  const userAction = pathParts.length > 2 ? pathParts[2] : null;
+  const userAction = pathParts && pathParts.length > 2 ? pathParts[2] : null;
   if (!userAction) {
     throw new NotFoundError('Invalid request, no user action provided');
   }
@@ -73,7 +73,7 @@ async function routeType(req) {
   if (method !== METHOD.GET) {
     throw new BadRequestError(`Invalid request method: ${method}`, HTTP_STATUS.METHOD_NOT_ALLOWED);
   }
-  const typeName = pathParts.length > 2 ? pathParts[2] : null;
+  const typeName = pathParts && pathParts.length > 2 ? pathParts[2] : null;
   const types = await dbService.getTypes();
   let results = {};
   types.forEach((type) => {
@@ -92,7 +92,7 @@ async function crudFunction(req) {
   const { baseUrl: path, method, body: bodyValue } = req;
   const pathParts = path ? path.split('/') : null;
   const body = typeof bodyValue === 'string' ? JSON.parse(bodyValue) : bodyValue;
-  const pathContext = pathParts.length > 1 ? pathParts[1] : null;
+  const pathContext = pathParts && pathParts.length > 1 ? pathParts[1] : null;
   const tableName = RESERVED_TABLE_NAMES.includes(pathContext) ? pathContext + 's' : pathContext;
   let result;
 
