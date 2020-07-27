@@ -1,4 +1,5 @@
 const userService = require('./userService');
+const authService = require('./authService');
 const httpService = require('./httpService');
 const dbService = require('./dbService');
 const mapService = require('./mapService');
@@ -15,7 +16,7 @@ const METHOD = {
 const { HTTP_STATUS } = constants;
 const { NotFoundError, BadRequestError } = httpService;
 
-async function route(req) {
+async function route(req, res, next) {
   const { baseUrl: path } = req;
   const pathParts = path ? path.split('/') : null;
   const pathContext = pathParts && pathParts.length > 1 ? pathParts[1] : null;
@@ -35,7 +36,7 @@ async function route(req) {
     case 'address':
     case 'tag':
     case 'group':
-      return crudFunction(req);
+      return crudFunction(req, res);
     default:
       throw new NotFoundError(`Invalid request. Path is invalid. path=${path}`);
   }
@@ -88,7 +89,7 @@ async function routeType(req) {
   return results;
 }
 
-async function crudFunction(req) {
+async function crudFunction(req, res) {
   const { baseUrl: path, method, body: bodyValue } = req;
   const pathParts = path ? path.split('/') : null;
   const body = typeof bodyValue === 'string' ? JSON.parse(bodyValue) : bodyValue;
@@ -96,7 +97,10 @@ async function crudFunction(req) {
   const tableName = RESERVED_TABLE_NAMES.includes(pathContext) ? pathContext + 's' : pathContext;
   let result;
 
-  const userUuid = req.user;
+  const auth = await authService.authenticate(req, res);
+  console.log('auth');
+  console.log(auth);
+  const userUuid = auth && auth.user;
   const user = await userService.getUserByUuid(userUuid);
   if (!user) {
     throw new BadRequestError('Authorization failed. No user available in request', HTTP_STATUS.UNAUTHORIZED);
