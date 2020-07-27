@@ -9,7 +9,12 @@
   "scripts": {
     "start": "node_modules/nodemon/bin/nodemon.js index.js",
     "start:prod": "node index.js",
-    "build": "babel src -d lib",
+    "build": "babel code -d lib",
+    "docker:run": "yarn docker:build && yarn docker:start",
+    "docker:build": "docker build . --tag contacts:latest",
+    "docker:start": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
+    "docker:log": "docker logs contact_web_1",
     "test": "jest"
   },
   "dependencies": {

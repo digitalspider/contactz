@@ -25,7 +25,7 @@ function debugSql(...messages) {
 }
 
 function createPrintString(messages) {
-  return messages.map((message) => typeof message === 'object' ? message.message || JSON.stringify(message) : message).join(' ');
+  return messages.map((message) => typeof message === 'object' ? message && message.message || JSON.stringify(message) : message).join(' ');
 }
 
 module.exports = { info, warn, error, debug, debugSql };
