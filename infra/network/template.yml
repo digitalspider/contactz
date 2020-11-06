@@ -141,130 +141,135 @@ Resources:
       SubnetId:
         Ref: VPCSubnetPublicAPSE2C
 
-  ElasticIpAPSE2A:
+  # ElasticIpAPSE2A:
+  #   Type: AWS::EC2::EIP
+  #   Properties:
+  #     Domain: vpc
+  #     Tags:
+  #       - Key: Name
+  #         Value: ip-vpc-apse2a
+  # ElasticIpAPSE2B:
+  #   Type: AWS::EC2::EIP
+  #   Properties:
+  #     Domain: vpc
+  #     Tags:
+  #       - Key: Name
+  #         Value: ip-vpc-apse2b
+  # ElasticIpAPSE2C:
+  #   Type: AWS::EC2::EIP
+  #   Properties:
+  #     Domain: vpc
+  #     Tags:
+  #       - Key: Name
+  #         Value: ip-vpc-apse2c
+  # NATGatewayAPSE2A:
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId:
+  #       Fn::GetAtt: ElasticIpAPSE2A.AllocationId
+  #     SubnetId:
+  #       Ref: VPCSubnetPublicAPSE2A
+  #     Tags:
+  #       - Key: Name
+  #         Value: nat-gw-vpc-apse2a
+  # NATGatewayAPSE2B:
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId:
+  #       Fn::GetAtt: ElasticIpAPSE2B.AllocationId
+  #     SubnetId:
+  #       Ref: VPCSubnetPublicAPSE2B
+  #     Tags:
+  #       - Key: Name
+  #         Value: nat-gw-vpc-apse2b
+  # NATGatewayAPSE2C:
+  #   Type: AWS::EC2::NatGateway
+  #   Properties:
+  #     AllocationId:
+  #       Fn::GetAtt: ElasticIpAPSE2C.AllocationId
+  #     SubnetId:
+  #       Ref: VPCSubnetPublicAPSE2C
+  #     Tags:
+  #       - Key: Name
+  #         Value: nat-gw-vpc-apse2c
+
+  # NATRouteTableAPSE2A:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     Tags:
+  #       - Key: Name
+  #         Value: rt-vpc-public-apse2a
+  #     VpcId:
+  #       Ref: VPC
+  # NATRouteTableAPSE2B:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     Tags:
+  #       - Key: Name
+  #         Value: rt-vpc-public-apse2b
+  #     VpcId:
+  #       Ref: VPC
+  # NATRouteTableAPSE2C:
+  #   Type: AWS::EC2::RouteTable
+  #   Properties:
+  #     Tags:
+  #       - Key: Name
+  #         Value: rt-vpc-public-apse2c
+  #     VpcId:
+  #       Ref: VPC
+
+  # NATRouteAPSE2A:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     DestinationCidrBlock: '0.0.0.0/0'
+  #     NatGatewayId:
+  #       Ref: NATGatewayAPSE2A
+  #     RouteTableId:
+  #       Ref: NATRouteTableAPSE2A
+  # NATRouteAPSE2B:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     DestinationCidrBlock: '0.0.0.0/0'
+  #     NatGatewayId:
+  #       Ref: NATGatewayAPSE2B
+  #     RouteTableId:
+  #       Ref: NATRouteTableAPSE2B
+  # NATRouteAPSE2C:
+  #   Type: AWS::EC2::Route
+  #   Properties:
+  #     DestinationCidrBlock: '0.0.0.0/0'
+  #     NatGatewayId:
+  #       Ref: NATGatewayAPSE2C
+  #     RouteTableId:
+  #       Ref: NATRouteTableAPSE2C
+
+  # VPCSubnetAssocPrivateAPSE2A:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId:
+  #       Ref: NATRouteTableAPSE2A
+  #     SubnetId:
+  #       Ref: VPCSubnetPrivateAPSE2A
+  # VPCSubnetAssocPrivateAPSE2B:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId:
+  #       Ref: NATRouteTableAPSE2B
+  #     SubnetId:
+  #       Ref: VPCSubnetPrivateAPSE2B
+  # VPCSubnetAssocPrivateAPSE2C:
+  #   Type: AWS::EC2::SubnetRouteTableAssociation
+  #   Properties:
+  #     RouteTableId:
+  #       Ref: NATRouteTableAPSE2C
+  #     SubnetId:
+  #       Ref: VPCSubnetPrivateAPSE2C
+
+  BastionEIP:
     Type: AWS::EC2::EIP
     Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: ip-vpc-apse2a
-  ElasticIpAPSE2B:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: ip-vpc-apse2b
-  ElasticIpAPSE2C:
-    Type: AWS::EC2::EIP
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: ip-vpc-apse2c
-  NATGatewayAPSE2A:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId:
-        Fn::GetAtt: ElasticIpAPSE2A.AllocationId
-      SubnetId:
-        Ref: VPCSubnetPublicAPSE2A
-      Tags:
-        - Key: Name
-          Value: nat-gw-vpc-apse2a
-  NATGatewayAPSE2B:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId:
-        Fn::GetAtt: ElasticIpAPSE2B.AllocationId
-      SubnetId:
-        Ref: VPCSubnetPublicAPSE2B
-      Tags:
-        - Key: Name
-          Value: nat-gw-vpc-apse2b
-  NATGatewayAPSE2C:
-    Type: AWS::EC2::NatGateway
-    Properties:
-      AllocationId:
-        Fn::GetAtt: ElasticIpAPSE2C.AllocationId
-      SubnetId:
-        Ref: VPCSubnetPublicAPSE2C
-      Tags:
-        - Key: Name
-          Value: nat-gw-vpc-apse2c
-
-  NATRouteTableAPSE2A:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags:
-        - Key: Name
-          Value: rt-vpc-public-apse2a
-      VpcId:
-        Ref: VPC
-  NATRouteTableAPSE2B:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags:
-        - Key: Name
-          Value: rt-vpc-public-apse2b
-      VpcId:
-        Ref: VPC
-  NATRouteTableAPSE2C:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      Tags:
-        - Key: Name
-          Value: rt-vpc-public-apse2c
-      VpcId:
-        Ref: VPC
-
-  NATRouteAPSE2A:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: '0.0.0.0/0'
-      NatGatewayId:
-        Ref: NATGatewayAPSE2A
-      RouteTableId:
-        Ref: NATRouteTableAPSE2A
-  NATRouteAPSE2B:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: '0.0.0.0/0'
-      NatGatewayId:
-        Ref: NATGatewayAPSE2B
-      RouteTableId:
-        Ref: NATRouteTableAPSE2B
-  NATRouteAPSE2C:
-    Type: AWS::EC2::Route
-    Properties:
-      DestinationCidrBlock: '0.0.0.0/0'
-      NatGatewayId:
-        Ref: NATGatewayAPSE2C
-      RouteTableId:
-        Ref: NATRouteTableAPSE2C
-
-  VPCSubnetAssocPrivateAPSE2A:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId:
-        Ref: NATRouteTableAPSE2A
-      SubnetId:
-        Ref: VPCSubnetPrivateAPSE2A
-  VPCSubnetAssocPrivateAPSE2B:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId:
-        Ref: NATRouteTableAPSE2B
-      SubnetId:
-        Ref: VPCSubnetPrivateAPSE2B
-  VPCSubnetAssocPrivateAPSE2C:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId:
-        Ref: NATRouteTableAPSE2C
-      SubnetId:
-        Ref: VPCSubnetPrivateAPSE2C
-
+      InstanceId:
+        Ref: Bastion
   BastionSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -320,12 +325,12 @@ Resources:
         FromPort: 443
         ToPort: 443
         CidrIp: 16.16.0.0/20
-      # - Description: Bastion Access
-      #   IpProtocol: tcp
-      #   FromPort: 22
-      #   ToPort: 22
-      #   CidrIp:
-      #     Fn::Join: ['', [Fn::GetAtt: Bastion.PrivateIp, '/32']]
+      - Description: Bastion Access
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp:
+          Fn::Join: ['', [Fn::GetAtt: Bastion.PrivateIp, '/32']]
       SecurityGroupEgress:
       - IpProtocol: -1
         CidrIp: 0.0.0.0/0
