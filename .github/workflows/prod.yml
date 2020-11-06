@@ -24,10 +24,15 @@ jobs:
       #   with:
       #     sam_command: build
       #     directory: infra/datastore/dynamo
-      # - name: sam deploy (infra/datastore/dynamo)
+      # - name: sam deploy (infra/datastore/dynamo) contact
       #   uses: TractorZoom/sam-cli-action@master
       #   with:
       #     sam_command: "deploy --no-fail-on-empty-changeset"
+      #     directory: infra/datastore/dynamo
+      # - name: sam deploy (infra/datastore/dynamo) user
+      #   uses: TractorZoom/sam-cli-action@master
+      #   with:
+      #     sam_command: "deploy --no-fail-on-empty-changeset --parameter-overrides TableName=user --stack-name=db-dynamo-user s3-prefix=db-dynamo-user"
       #     directory: infra/datastore/dynamo
 
       # - name: sam build (infra/network)

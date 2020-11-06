@@ -2,8 +2,8 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "db-dynamo"
+stack_name = "db-dynamo-contact"
 s3_bucket = "sam-contactz"
-s3_prefix = "db-dynamo"
+s3_prefix = "db-dynamo-contact"
 region = "ap-southeast-2"
 capabilities = "CAPABILITY_IAM"

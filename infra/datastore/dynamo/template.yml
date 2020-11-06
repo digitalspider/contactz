@@ -5,7 +5,7 @@ Parameters:
   TableName:
     Type: String
     Description: The name of the DynamoDB table
-    Default: contactz
+    Default: contact
   PartitionKeyAttributeName:
     Type: String
     Description: The name of the partitionKey
@@ -72,10 +72,12 @@ Outputs:
     Value:
       Fn::GetAtt: DynamoTable.Arn
     Export:
-      Name: dynamo-table-arn
+      Name:
+        Fn::Sub: dynamo-table-${TableName}-arn
   DynamoTableStreamArn:
     Description: The DynamoDB table stream ARN
     Value:
       Fn::GetAtt: DynamoTable.StreamArn
     Export:
-      Name: dynamo-table-stream-arn
+      Name:
+        Fn::Sub: dynamo-table-${TableName}-stream-arn

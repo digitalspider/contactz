@@ -15,5 +15,5 @@ sam build && sam deploy --profile contactz
 To delete this stack:
 
 ```
-aws --profile contactz cloudformation delete-stack --stack-name db-dynamo
+aws --profile contactz cloudformation delete-stack --stack-name db-dynamo-contact
 ```
