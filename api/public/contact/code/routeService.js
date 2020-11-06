@@ -91,8 +91,8 @@ async function crudFunction(req, res) {
   const auth = await authService.authenticate(req, res);
   console.log('auth');
   console.log(auth);
-  const userUuid = auth && auth.user;
-  const user = await userService.getUserByUuid(userUuid);
+  const username = auth && auth.user;
+  const user = await userService.getUserByUsername(username);
   if (!user) {
     throw new BadRequestError('Authorization failed. No user available in request', HTTP_STATUS.UNAUTHORIZED);
   }

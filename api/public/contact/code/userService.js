@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
 const md5 = require('md5');
-const dynamoService = require('./dynamoService');
+const crudService = require('./crudService');
 const httpService = require('./httpService');
 const logService = require('./logService');
 
@@ -44,14 +44,14 @@ async function login(loginBody) {
   return user;
 }
 
-async function logout(userUuid) {
-  const user = await getUserByUuid(userUuid);
+async function logout(username) {
+  const user = await getUserByUsername(username);
   if (!user) {
     throw new Error('Authorization failed. No user available in request');
   }
   await updateUserToken(user, null, null);
   logService.info(`Logged out user=${userUuid}`);
-  return { 'success': true };
+  return { success: true };
 }
 
 async function refreshToken(headers) {
@@ -66,8 +66,8 @@ async function refreshToken(headers) {
   } catch (err) {
     throw new Error('Authorization failed. refreshToken is invalid. Please log in');
   }
-  const userUuid = jwtPayload.sub;
-  const user = await getUserByUuid(userUuid);
+  const username = jwtPayload.sub;
+  const user = await getUserByUsername(username);
   if (!user) {
     throw new Error('Authorization failed. No user available in refreshToken');
   }
@@ -88,56 +88,52 @@ async function refreshToken(headers) {
 async function updateUserToken(user, token, refreshToken) {
   user.token = token;
   user.refresh_token = refreshToken && md5(refreshToken);
-  dynamoService.crud.update({ tableName: TABLE_NAME, partitionKey: user.pk, sortKey: user.sk, body: user });
+  crudService.crud.update({ tableName: TABLE_NAME, userId: user.pk, id: user.sk, body: user });
 }
 
 async function findUserTokenByRefreshToken(refreshToken) {
   const sqlQuery = `select refresh_token from ${dbService.TABLE.USERS} where md5(refresh_token) = $1`;
   const values = [refreshToken];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
-  // dynamoService.crud.read({ tableName: TABLE_NAME, partitionKey: user.pk, sortKey: user.sk, body: user });
+  // crudService.crud.read({ tableName: TABLE_NAME, userId: user.pk, id: user.sk, body: user });
   if (result.rowCount > 0) {
     return result.rows[0]['refresh_token'];
   }
 }
 
 async function handleLogin({ username, password }) {
-  return dynamoService.crud.read({ tableName: TABLE_NAME, partitionKey: username, sortKey: md5(password) })
+  return crudService.crud.read({ tableName: TABLE_NAME, userId: username, id: md5(password) });
+}
+
+function sanitiseResult(result) {
+  if (!result) {
+    return null;
+  }
+  delete result.sk;
+  delete result.id;
+  delete result.password;
+  return result;
 }
 
 async function createUser({ username, password, organisation }) {
   const body = {
     created_at: new Date().toISOString(),
-    displayName: username,
+    name: username,
     organisation,
-  }
-  const result = await dynamoService.crud.create({ tableName: TABLE_NAME, partitionKey: username, sortKey: md5(password), body });
-  if (!result) {
-    return null;
-  }
-  return result;
+  };
+  const result = await crudService.crud.create({ tableName: TABLE_NAME, userId: username, id: md5(password), body });
+  return sanitiseResult(result);
 }
 
 async function getUserByUsername(username) {
-  const result = await dynamoService.crud.read({ tableName: TABLE_NAME, partitionKey: username });
-  if (!result) {
-    return null;
-  }
-  return result;
-}
-
-async function getUserByUuid(uuid) {
-  const result = await dynamoService.crud.read({ tableName: TABLE_NAME, partitionKey: uuid });
-  if (!result) {
-    return null;
-  }
-  return result;
+  const result = await crudService.crud.read({ tableName: TABLE_NAME, userId: username });
+  return sanitiseResult(result);
 }
 
 function getClaims(user) {
   const claims = {
     issuer,
-    sub: user.uuid,
+    sub: user.username,
     exp: moment().unix() + JWT_TOKEN_EXPIRY_IN_SEC,
   };
   if (user.org) {
@@ -148,4 +144,4 @@ function getClaims(user) {
   return claims;
 }
 
-module.exports = { register, login, logout, refreshToken, getUserByUuid, getUserByUsername };
+module.exports = { register, login, logout, refreshToken, getUserByUsername };
