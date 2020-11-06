@@ -95,14 +95,14 @@ async function findUserTokenByRefreshToken(refreshToken) {
   const sqlQuery = `select refresh_token from ${dbService.TABLE.USERS} where md5(refresh_token) = $1`;
   const values = [refreshToken];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
-  // dynamoService.crud.readOne({ tableName: TABLE_NAME, partitionKey: user.pk, sortKey: user.sk, body: user });
+  // dynamoService.crud.read({ tableName: TABLE_NAME, partitionKey: user.pk, sortKey: user.sk, body: user });
   if (result.rowCount > 0) {
     return result.rows[0]['refresh_token'];
   }
 }
 
 async function handleLogin({ username, password }) {
-  return dynamoService.crud.readOne({ tableName: TABLE_NAME, partitionKey: username, sortKey: md5(password) })
+  return dynamoService.crud.read({ tableName: TABLE_NAME, partitionKey: username, sortKey: md5(password) })
 }
 
 async function createUser({ username, password, organisation }) {
@@ -119,7 +119,7 @@ async function createUser({ username, password, organisation }) {
 }
 
 async function getUserByUsername(username) {
-  const result = await dynamoService.crud.readOne({ tableName: TABLE_NAME, partitionKey: username });
+  const result = await dynamoService.crud.read({ tableName: TABLE_NAME, partitionKey: username });
   if (!result) {
     return null;
   }
@@ -127,7 +127,7 @@ async function getUserByUsername(username) {
 }
 
 async function getUserByUuid(uuid) {
-  const result = await dynamoService.crud.readOne({ tableName: TABLE_NAME, partitionKey: uuid });
+  const result = await dynamoService.crud.read({ tableName: TABLE_NAME, partitionKey: uuid });
   if (!result) {
     return null;
   }

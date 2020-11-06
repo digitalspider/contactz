@@ -125,42 +125,37 @@ async function crudFunction(req, res) {
             searchExact: qe || false, // false if q is defined
             sortColumn: sort,
             sortOrder,
+            limit,
+            pageNo,
           };
         }
-        result = await dbService.list(tableName, userId, limit, pageNo, searchOptions);
-        if (result.results) {
-          result.results.map((data) => mapService.dbToApi(tableName, userId, null, data));
-          result.results.map((data) => {
-            delete data.id;
-            return data;
-          });
-        }
+        result = await dynamoService.crud.search({ tableName, partitionKey: userId, searchOptions });
+        // if (result.results) {
+        //   result.results.map((data) => mapService.dbToApi(tableName, userId, null, data));
+        // }
       } else {
-        result = await dynamoService.crud.readOne({ tableName, partitionKey: id, sortKey: userId });
-        await mapService.dbToApi(tableName, userId, id, result);
-        delete result.id;
+        result = await dynamoService.crud.read({ tableName, partitionKey: userId, sortKey: id });
+        // await mapService.dbToApi(tableName, userId, id, result);
       }
       break;
     case METHOD.POST:
       // await mapService.apiToDb(tableName, userId, null, body);
       id = utilService.generateId('C-');
-      result = await dynamoService.crud.create({ tableName, partitionKey: id, sortKey: userId, body });
-      await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
-      delete result.id;
+      result = await dynamoService.crud.create({ tableName, partitionKey: userId, sortKey: id, body });
+      // await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
       break;
     case METHOD.PUT:
       if (!id) {
         throw new BadR('Invalid PUT request, no ID provided');
       }
       // await mapService.apiToDb(tableName, userId, id, body);
-      result = await dynamoService.crud.update({ tableName, partitionKey: id, sortKey: userId, body });
-      delete result.id;
+      result = await dynamoService.crud.update({ tableName, partitionKey: userId, sortKey: id, body });
       break;
     case METHOD.DELETE:
       if (!id) {
         throw new Error('Invalid DELETE request, no ID provided');
       }
-      result = await dynamoService.crud.delete({ tableName, partitionKey: id, sortKey: userId });
+      result = await dynamoService.crud.delete({ tableName, partitionKey: userId, sortKey: id });
       break;
     default:
       throw new Error(`Invalid request method: ${method}. Expected GET, POST, PUT or DELETE`);

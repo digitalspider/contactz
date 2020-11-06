@@ -1,8 +1,14 @@
 const AWS = require('aws-sdk');
+const { result } = require('lodash');
 
 const TABLES = {
   contact: {
     name: 'contact',
+    partitionKey: 'pk',
+    sortKey: 'sk',
+  },
+  user: {
+    name: 'user',
     partitionKey: 'pk',
     sortKey: 'sk',
   },
@@ -61,78 +67,97 @@ function getDynamoDbStreams() {
   return new AWS.DynamoDBStreams();
 }
 
-/**
- * Delete item from dynamo matching partition/sort kes
- * @param {object} params
- * @param {string} params.tableName Table name
- * @param {string} params.partitionKey Partition key value
- * @param {string} params.sortKey Sort  key value
- * @return {Promise<any[]>} List of dynamo items
- */
-async function deleteItem({ tableName, partitionKey, sortKey = null }) {
-  const table = TABLES[tableName];
-  const params = {
-    TableName: tableName,
-    Key: {
-      [table.partitionKey]: {
-        S: partitionKey,
-      },
-    },
-  };
-
-  if (sortKey) {
-    params.Key[table.sortKey] = {
-      S: sortKey,
-    };
-  }
+async function deleteItem({ tableName, partitionKey, sortKey }) {
   const dynamoClient = module.exports.getDynamoDB();
+
+  const params = getKeyParams(tableName, partitionKey, sortKey);
   return dynamoClient.deleteItem(params).promise();
 }
 
-/**
- * Get all items from dynamo matching partition/sort kes
- * @param {object} params
- * @param {string} params.tableName Table name
- * @param {string} params.partitionKey Partition key value
- * @param {string} params.sortKey Sort  key value
- * @return {Promise<any>} List of dynamo items
- */
-async function getItem({ tableName, partitionKey, sortKey = null }) {
-  const table = TABLES[tableName];
-  const params = {
-    TableName: tableName,
-    Key: {
-      [table.partitionKey]: {
-        S: partitionKey,
-      },
-    },
-  };
-
-  if (sortKey) {
-    params.Key[table.sortKey] = {
-      S: sortKey,
-    };
-  }
-
+async function getItem({ tableName, partitionKey, sortKey }) {
   const dynamoClient = module.exports.getDynamoDB();
+
+  const params = getKeyParams(tableName, partitionKey, sortKey);
   const response = await dynamoClient.getItem(params).promise();
   return response.Item;
 }
 
-/**
- * Write a single item to dynamodb
- * @param {object} params
- * @param {string} params.tableName Table name
- * @param {any} params.item Dynamo item (using { S: 'something'} notation)
- */
-async function putItem({ tableName, item }) {
+async function update({ tableName, partitionKey, sortKey, item }) {
+  const dynamoClient = module.exports.getDynamoDB();
+
+  const params = getKeyParams(tableName, partitionKey, sortKey);
+  // params.UpdateExpression: "set info.rating = :r, info.plot=:p, info.actors=:a",
+  params.ExpressionAttributeValues = item;
+  return dynamoClient.update(params).promise();
+}
+
+async function putItem({ tableName, partitionKey, sortKey, item }) {
+  const dynamoClient = module.exports.getDynamoDB();
+
+  const table = getTable(tableName);
   const params = {
     TableName: tableName,
-    Item: item,
+    Item: {
+      [table.partitionKey]: partitionKey,
+      [table.sortKey]: sortKey,
+      ...body,
+    },
   };
-
-  const dynamoClient = module.exports.getDynamoDB();
+  
   return dynamoClient.putItem(params).promise();
+}
+
+async function search({ tableName, partitionKey, searchOptions }) {
+  const dynamoClient = module.exports.getDynamoDB();
+
+  const table = getTable(tableName);
+  let params = {
+    TableName: tableName,
+    KeyConditionExpression: "#pk = :pk",
+    ExpressionAttributeNames:{
+        "#pk": table.partitionKey,
+    },
+    ExpressionAttributeValues: {
+        ":pk": partitionKey,
+    },
+  };
+  if (searchOptions) {
+    const { searchTerm, searchColumn = 'search', searchExact = true, sortColumn, sortOrder, limit, pageNo } = searchOptions;
+    const filterExpression = searchExact ? '#column = :value' : 'contains(#column, :value)';
+    params = {
+      ...params,
+      Limit: limit,
+      FilterExpression: filterExpression,
+      ExpressionAttributeNames: {
+        "#column": searchColumn,
+      },
+      ExpressionAttributeValues: {
+        ":value": searchTerm,
+      },
+    }
+  }
+  
+  return dynamoClient.putItem(params).promise();
+}
+
+function getTable(tableName) {
+  const table = TABLES[tableName];
+  if (!table) {
+    throw new Error(`Invalid tableName ${tableName}`);
+  }
+  return table;
+}
+
+function getKeyParams(tableName, partitionKey, sortKey) {
+  const table = getTable(tableName);
+  const params = {
+    TableName: tableName,
+    Key: {
+      [table.partitionKey]: partitionKey,
+      [table.sortKey]: sortKey ? sortKey : undefined,
+    },
+  };
+  return params;
 }
 
 /**
@@ -143,17 +168,18 @@ const crud = {
   create: ({ tableName, partitionKey, sortKey, body }) =>
     putItem({
       tableName,
-      item: {
-        [TABLES.contact.partitionKey]: {
-          S: partitionKey,
-        },
-        [TABLES.contact.sortKey]: {
-          S: sortKey,
-        },
-        ...body,
-      },
+      partitionKey,
+      sortKey,
+      item: body,
     }),
-  readOne: async ({ partitionKey, sortKey }) => {
+  update: ({ tableName, partitionKey, sortKey, body }) =>
+    update({
+      tableName,
+      partitionKey,
+      sortKey,
+      item: body,
+    }),
+  read: async ({ tableName, partitionKey, sortKey }) => {
     const item = await getItem({
       tableName,
       partitionKey,
@@ -162,7 +188,23 @@ const crud = {
     if (!item) return null;
     return item;
   },
-  delete: ({ partitionKey, sortKey }) =>
+  search: async ({ tableName, partitionKey, searchOptions }) => {
+    const results = await search({
+      tableName,
+      partitionKey,
+      searchOptions,
+    });
+    return results ? {
+      count: results.Count || 0,
+      total: results.ScannedCount || 0,
+      results: results.Items || [],
+    } : {
+      count: 0,
+      total: 0,
+      results: [], 
+    };
+  },
+  delete: ({ tableName, partitionKey, sortKey }) =>
     deleteItem({
       tableName,
       partitionKey,
