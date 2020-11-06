@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: SAM Template for contact lambda
+
+Parameters:
+  LambdaName:
+    Type: String
+    Description: The name of the main lambda
+    Default: contact
+  JwtSecret:
+    Type: String
+    Description: The jwt secret required by the auth lambda
+    Default: secret
+
+Resources:
+  MainFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Role:
+        Fn::GetAtt: MainLambdaRole.Arn
+      CodeUri:
+        Fn::Sub: ${LambdaName}/code/
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Description:
+        Fn::Sub: ${LambdaName} lambda
+      FunctionName:
+        Fn::Sub: ${LambdaName}-lambda
+      Timeout: 10
+      Tracing: Active
+      Layers:
+        - Ref: MainDependenciesLayer
+      Environment:
+        Variables:
+          JWT_SECRET:
+            Ref: JwtSecret
+          TABLE_NAME:
+            Ref: LambdaName
+
+  MainDependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName:
+        Fn::Sub: ${LambdaName}-dependencies
+      Description:
+        Fn::Sub: All dependencies for ${LambdaName} lambda
+      ContentUri: contact/dependencies/
+      CompatibleRuntimes:
+        - nodejs12.x
+      RetentionPolicy: Delete
+
+  MainLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Allows a lambda to access the KMS key to decrypt DB config data
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Policies:
+        - PolicyName: DbDecryptKeyAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:Encrypt
+                  - kms:Decrypt
+                  - kms:ReEncrypt*
+                  - kms:GenerateDataKey*
+                  - kms:DescribeKey
+                Resource: "*"
+        - PolicyName: DbSecretManagerAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:GetSecretValue
+                Resource: "*"
+        - PolicyName: XRayAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow # xray permissions (required)
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                Resource:
+                  - "*"
+
+Outputs:
+  MainFunction:
+    Description: The authorizer lambda ARN
+    Value:
+      Fn::GetAtt: MainFunction.Arn
+    Export:
+      Name: lambda-arn

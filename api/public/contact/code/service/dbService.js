@@ -4,7 +4,7 @@ const secretService = require('./secretService');
 const cacheService = require('./cacheService');
 const logService = require('./logService');
 const constants = require('./constants');
-const { dbSecret, dbHost, dbPort, dbName, dbUser, dbPass } = require('./config');
+const { dbSecret, dbHost, dbPort, dbName, dbUser, dbPass } = require('../config');
 const httpStatus = constants.HTTP_STATUS;
 
 const TABLE = {
@@ -33,13 +33,15 @@ let dbPool;
 
 async function init() {
   if (!dbPool) {
-    const dbConfig = dbSecret ? await secretService.getSecret(dbSecret) : {
-      username: dbUser,
-      password: dbPass,
-      dbname: dbName,
-      host: dbHost,
-      port: dbPort,
-    };
+    const dbConfig = dbSecret
+      ? await secretService.getSecret(dbSecret)
+      : {
+          username: dbUser,
+          password: dbPass,
+          dbname: dbName,
+          host: dbHost,
+          port: dbPort,
+        };
     if (!dbConfig) {
       throw new Error(`Application has not been initialized. SecretManager variable is missing: ${dbSecret}`);
     }
@@ -106,8 +108,7 @@ async function getTableColumnData(tableName) {
       name: row.column_name,
       nullable: row.is_nullable,
       data_type: row.data_type,
-    })
-    );
+    }));
   cacheService.cache(cacheContext, tableName, columnData);
   return columnData;
 }
@@ -120,7 +121,7 @@ async function getInsertData(userId, tableName, body) {
   columnData.map((column) => {
     const columnValue = body[column.name];
     if (columnValue) {
-      columnNames.push(column.name)
+      columnNames.push(column.name);
       params.push(`\$${params.length + 1}`);
       values.push(columnValue);
     }
@@ -218,7 +219,7 @@ async function list(tableName, userId, searchOptions = {}) {
       const columnData = await getTableColumnData(tableName);
       const foundColumn = columnData.filter((col) => col.name === sortColumn);
       if (foundColumn.length === 1) {
-        sortClause = `order by ${sortColumn} ${['asc', 'desc'].includes(sortOrder) ? sortOrder : ''}`
+        sortClause = `order by ${sortColumn} ${['asc', 'desc'].includes(sortOrder) ? sortOrder : ''}`;
       }
     }
     const createdByColumn = getCreatedByColumn(tableName);
@@ -234,7 +235,7 @@ async function list(tableName, userId, searchOptions = {}) {
     pageSize,
     pages,
     results: formattedResults,
-  }
+  };
 }
 
 function cleanseRow(row) {

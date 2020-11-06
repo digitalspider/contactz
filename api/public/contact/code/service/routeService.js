@@ -16,8 +16,10 @@ const METHOD = {
 const { HTTP_STATUS } = constants;
 const { NotFoundError, BadRequestError } = httpService;
 
-async function route(req, res, next) {
-  const { baseUrl: path } = req;
+// async function route(req, res, next) {
+//   const { baseUrl: path } = req;
+async function route(event) {
+  const { path } = event;
   const pathParts = path ? path.split('/') : null;
   const pathContext = pathParts && pathParts.length > 1 ? pathParts[1] : null;
   logService.info('pathContext', pathContext);
@@ -28,18 +30,20 @@ async function route(req, res, next) {
     case 'status':
       return { success: true };
     case 'user':
-      return routeUser(req);
+      return routeUser(event);
     case 'type':
-      return routeType(req);
+      return routeType(event);
     case 'contact':
-      return crudFunction(req, res);
+      return crudFunction(event);
     default:
       throw new NotFoundError(`Invalid request. Path is invalid. path=${path}`);
   }
 }
 
-async function routeUser(req) {
-  const { baseUrl: path, method, body: bodyValue } = req;
+// async function routeUser(req) {
+//   const { baseUrl: path, method, body: bodyValue } = req;
+async function routeUser(event) {
+  const { path, httpMethod: method, body: bodyValue } = event;
   const pathParts = path ? path.split('/') : null;
   const body = typeof bodyValue === 'string' ? JSON.parse(bodyValue) : bodyValue;
   if (method !== METHOD.POST) {
@@ -55,18 +59,18 @@ async function routeUser(req) {
     case 'login':
       return userService.login(body);
     case 'logout':
-      const userUuid = req.user;
+      // const userUuid = req.user;
+      const userUuid = event.requestContext.authorizer && event.requestContext.authorizer.principalId;
       return userService.logout(userUuid);
     case 'refresh':
-      return userService.refreshToken(req.headers);
+      return userService.refreshToken(event.headers);
     default:
       throw new NotFoundError(`Invalid request. Unknown userAction: ${userAction}`);
   }
 }
 
-async function routeType(req) {
-  const { baseUrl: path, method } = req;
-  const pathParts = path ? path.split('/') : null;
+async function routeType(event) {
+  const { httpMethod: method } = event;
   if (method !== METHOD.GET) {
     throw new BadRequestError(`Invalid request method: ${method}. Expected GET`, HTTP_STATUS.METHOD_NOT_ALLOWED);
   }
@@ -80,24 +84,26 @@ function getTableName(tableName) {
   return tableName;
 }
 
-async function crudFunction(req, res) {
-  const { baseUrl: path, method, body: bodyValue } = req;
+async function crudFunction(event) {
+  const { path, httpMethod: method, body: bodyValue } = event;
   const pathParts = path ? path.split('/') : null;
   const body = typeof bodyValue === 'string' ? JSON.parse(bodyValue) : bodyValue;
   const pathContext = pathParts && pathParts.length > 1 ? pathParts[1] : null;
   const tableName = getTableName(pathContext);
   let result;
 
-  const auth = await authService.authenticate(req, res);
-  console.log('auth');
-  console.log(auth);
-  const username = auth && auth.user;
+  // const auth = await authService.authenticate(req, res);
+  // console.log('auth');
+  // console.log(auth);
+  // const username = auth && auth.user;
+  const username = event.requestContext.authorizer.principalId;
   const user = await userService.getUserByUsername(username);
   if (!user) {
     throw new BadRequestError('Authorization failed. No user available in request', HTTP_STATUS.UNAUTHORIZED);
   }
   const userId = user.id;
-  const { id } = req.params;
+  // const { id } = req.params;
+  const id = event.pathParameters ? event.pathParameters.id : null;
   logService.debug(`userId=${userId}. id=${id}`);
   switch (method) {
     case METHOD.GET:
@@ -105,8 +111,9 @@ async function crudFunction(req, res) {
         let limit;
         let pageNo;
         let searchOptions;
-        if (req.query) {
-          const { q, qc, qe, sort, sortOrder, page, pageSize } = req.query;
+        // if (req.query) {
+        if (event.queryStringParameters) {
+          const { q, qc, qe, sort, sortOrder, page, pageSize } = event.queryStringParameters;
           limit = !isNaN(pageSize) ? Number(pageSize) : undefined;
           pageNo = !isNaN(page) ? Number(page) : undefined;
           searchOptions = {

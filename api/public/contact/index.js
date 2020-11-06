@@ -1,6 +1,6 @@
-const httpService = require('./code/httpService');
-const routeService = require('./code/routeService');
-const logService = require('./code/logService');
+const httpService = require('./service/httpService');
+const routeService = require('./service/routeService');
+const logService = require('./service/logService');
 const express = require('express');
 
 const app = express();
@@ -12,7 +12,7 @@ async function route(req, res, next) {
   const { host, ['user-agent']: userAgent } = headers;
   logService.info('Request:', method, protocol, host, path, params, query, userAgent.replace(/\s/g, '|'), body);
   const responseHeaders = {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   };
   try {
     const result = await routeService.route(req);
