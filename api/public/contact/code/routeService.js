@@ -1,16 +1,11 @@
 const userService = require('./userService');
 const authService = require('./authService');
 const httpService = require('./httpService');
-const dbService = require('./dbService');
-const dynamoService = require('./dynamoService');
+const crudService = require('./crudService');
 const mapService = require('./mapService');
 const logService = require('./logService');
 const constants = require('./constants');
 const utilService = require('./utilService');
-
-const TABLE_NAMES = {
-  contact: 'contact'
-};
 
 const METHOD = {
   POST: 'POST',
@@ -48,7 +43,7 @@ async function routeUser(req) {
   const pathParts = path ? path.split('/') : null;
   const body = typeof bodyValue === 'string' ? JSON.parse(bodyValue) : bodyValue;
   if (method !== METHOD.POST) {
-    throw new BadRequestError(`Invalid request method: ${method}`, HTTP_STATUS.METHOD_NOT_ALLOWED);
+    throw new BadRequestError(`Invalid request method: ${method}. Expected POST`, HTTP_STATUS.METHOD_NOT_ALLOWED);
   }
   const userAction = pathParts && pathParts.length > 2 ? pathParts[2] : null;
   if (!userAction) {
@@ -73,21 +68,16 @@ async function routeType(req) {
   const { baseUrl: path, method } = req;
   const pathParts = path ? path.split('/') : null;
   if (method !== METHOD.GET) {
-    throw new BadRequestError(`Invalid request method: ${method}`, HTTP_STATUS.METHOD_NOT_ALLOWED);
+    throw new BadRequestError(`Invalid request method: ${method}. Expected GET`, HTTP_STATUS.METHOD_NOT_ALLOWED);
   }
-  const typeName = pathParts && pathParts.length > 2 ? pathParts[2] : null;
-  const types = await dbService.getTypes();
-  let results = {};
-  types.forEach((type) => {
-    if (!results[type.name]) {
-      results[type.name] = [];
-    }
-    results[type.name].push(type.value);
-  });
-  if (typeName) {
-    results = results[typeName];
+  return crudService.crud.types();
+}
+
+function getTableName(tableName) {
+  if (!crudService.VALID_TABLE_NAMES[tableName]) {
+    throw new BadRequestError(`Invalid path context provided: ${tableName}. Expected one of ${VALID_TABLE_NAMES}`);
   }
-  return results;
+  return tableName;
 }
 
 async function crudFunction(req, res) {
@@ -95,7 +85,7 @@ async function crudFunction(req, res) {
   const pathParts = path ? path.split('/') : null;
   const body = typeof bodyValue === 'string' ? JSON.parse(bodyValue) : bodyValue;
   const pathContext = pathParts && pathParts.length > 1 ? pathParts[1] : null;
-  const tableName = TABLE_NAMES[pathContext];
+  const tableName = getTableName(pathContext);
   let result;
 
   const auth = await authService.authenticate(req, res);
@@ -129,19 +119,19 @@ async function crudFunction(req, res) {
             pageNo,
           };
         }
-        result = await dynamoService.crud.search({ tableName, partitionKey: userId, searchOptions });
+        result = await crudService.crud.search({ tableName, partitionKey: userId, searchOptions });
         // if (result.results) {
         //   result.results.map((data) => mapService.dbToApi(tableName, userId, null, data));
         // }
       } else {
-        result = await dynamoService.crud.read({ tableName, partitionKey: userId, sortKey: id });
+        result = await crudService.crud.read({ tableName, partitionKey: userId, sortKey: id });
         // await mapService.dbToApi(tableName, userId, id, result);
       }
       break;
     case METHOD.POST:
       // await mapService.apiToDb(tableName, userId, null, body);
       id = utilService.generateId('C-');
-      result = await dynamoService.crud.create({ tableName, partitionKey: userId, sortKey: id, body });
+      result = await crudService.crud.create({ tableName, partitionKey: userId, sortKey: id, body });
       // await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
       break;
     case METHOD.PUT:
@@ -149,13 +139,13 @@ async function crudFunction(req, res) {
         throw new BadR('Invalid PUT request, no ID provided');
       }
       // await mapService.apiToDb(tableName, userId, id, body);
-      result = await dynamoService.crud.update({ tableName, partitionKey: userId, sortKey: id, body });
+      result = await crudService.crud.update({ tableName, partitionKey: userId, sortKey: id, body });
       break;
     case METHOD.DELETE:
       if (!id) {
         throw new Error('Invalid DELETE request, no ID provided');
       }
-      result = await dynamoService.crud.delete({ tableName, partitionKey: userId, sortKey: id });
+      result = await crudService.crud.delete({ tableName, partitionKey: userId, sortKey: id });
       break;
     default:
       throw new Error(`Invalid request method: ${method}. Expected GET, POST, PUT or DELETE`);

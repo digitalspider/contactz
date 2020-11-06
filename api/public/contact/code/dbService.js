@@ -192,8 +192,8 @@ async function count(tableName, userId, searchColumn, searchTerm, searchExact = 
   return 0;
 }
 
-async function list(tableName, userId, pageSize = 20, page = 0, searchOptions = {}) {
-  let { searchColumn, searchTerm, searchExact, sortColumn, sortOrder } = searchOptions;
+async function list(tableName, userId, searchOptions = {}) {
+  let { searchColumn, searchTerm, searchExact, sortColumn, sortOrder, pageSize = 20, page = 0 } = searchOptions;
   const total = await count(tableName, userId, searchColumn, searchTerm, searchExact);
   let paginationClause = '';
   if (pageSize) {

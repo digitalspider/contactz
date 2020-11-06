@@ -1,5 +1,4 @@
 const AWS = require('aws-sdk');
-const { result } = require('lodash');
 
 const TABLES = {
   contact: {
@@ -14,7 +13,18 @@ const TABLES = {
   },
 };
 
+const TABLE_NAMES = Object.values(TABLES).map((data) => data.name);
+const VALID_TABLE_NAMES = TABLE_NAMES.filter((name) => name !== 'user');
+
 let defaultDynamoDBClient;
+
+function getTypes() {
+  return {
+    count: VALID_TABLE_NAMES.length,
+    total: VALID_TABLE_NAMES.length,
+    results: VALID_TABLE_NAMES,
+  };
+}
 
 async function reset() {
   defaultDynamoDBClient = null;
@@ -189,4 +199,4 @@ const crud = {
     }),
 };
 
-module.exports = { reset, getDynamoDB, getDynamoDbStreams, crud };
+module.exports = { VALID_TABLE_NAMES, getTypes, reset, getDynamoDB, getDynamoDbStreams, crud };
