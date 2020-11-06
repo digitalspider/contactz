@@ -1,6 +1,6 @@
-const httpService = require('./service/httpService');
-const routeService = require('./service/routeService');
-const logService = require('./service/logService');
+const httpService = require('./code/service/httpService');
+const routeService = require('./code/service/routeService');
+const logService = require('./code/service/logService');
 const express = require('express');
 
 const app = express();
