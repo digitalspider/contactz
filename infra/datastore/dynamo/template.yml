@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Create DynamoDB Table with Stream
+
+Parameters:
+  TableName:
+    Type: String
+    Description: The name of the DynamoDB table
+    Default: contactz
+  PartitionKeyAttributeName:
+    Type: String
+    Description: The name of the partitionKey
+    Default: pk
+  SortKeyAttributeName:
+    Type: String
+    Description: The name of the sortKey
+    Default: sk
+  BillingMode:
+    Type: String
+    Description: BillingMode Type
+    Default: PAY_PER_REQUEST
+    AllowedValues:
+      - PAY_PER_REQUEST
+      - PROVISIONED
+  MinReadCapacityUnits:
+    Type: Number
+    Description: Minimum Read Capacity Units
+    Default: 1
+  MinWriteCapacityUnits:
+    Type: Number
+    Description: Minimum Write Capacity Units
+    Default: 1
+
+Conditions:
+  isPROVISIONED:
+    Fn::Equals: [Ref: BillingMode, "PROVISIONED"]
+
+Resources:
+  DynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:
+        Ref: TableName
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      KeySchema:
+        - AttributeName:
+            Ref: PartitionKeyAttributeName
+          KeyType: HASH
+        - AttributeName:
+            Ref: SortKeyAttributeName
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName:
+            Ref: PartitionKeyAttributeName
+          AttributeType: S
+        - AttributeName:
+            Ref: SortKeyAttributeName
+          AttributeType: S
+      BillingMode:
+        Ref: BillingMode
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+      ProvisionedThroughput:
+        ReadCapacityUnits:
+          Fn::If: [isPROVISIONED, Ref: MinReadCapacityUnits, "0"]
+        WriteCapacityUnits:
+          Fn::If: [isPROVISIONED, Ref: MinWriteCapacityUnits, "0"]
+
+Outputs:
+  DynamoTable:
+    Description: The DynamoDB table ARN
+    Value:
+      Fn::GetAtt: DynamoTable.Arn
+    Export:
+      Name: dynamo-table-arn
+  DynamoTableStreamArn:
+    Description: The DynamoDB table stream ARN
+    Value:
+      Fn::GetAtt: DynamoTable.StreamArn
+    Export:
+      Name: dynamo-table-stream-arn

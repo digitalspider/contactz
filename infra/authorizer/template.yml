@@ -23,7 +23,7 @@ Resources:
     Properties:
       Name:
         Ref: AuthSecretName
-      Description: "Authorizer lambda"
+      Description: Authorizer lambda
       SecretString:
         Fn::Join: ["", ['{"auth-arn": "', Fn::GetAtt: AuthFunction.Arn, '"}']]
 
@@ -66,47 +66,47 @@ Resources:
           - Effect: Allow
             Principal:
               Service:
-                - "lambda.amazonaws.com"
+                - lambda.amazonaws.com
             Action:
-              - "sts:AssumeRole"
+              - sts:AssumeRole
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
-        - "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
       Policies:
-        - PolicyName: "DbDecryptKeyAccess"
+        - PolicyName: DbDecryptKeyAccess
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - "kms:Encrypt"
-                  - "kms:Decrypt"
-                  - "kms:ReEncrypt*"
-                  - "kms:GenerateDataKey*"
-                  - "kms:DescribeKey"
+                  - kms:Encrypt
+                  - kms:Decrypt
+                  - kms:ReEncrypt*
+                  - kms:GenerateDataKey*
+                  - kms:DescribeKey
                 Resource: "*"
-        - PolicyName: "DbSecretManagerAccess"
+        - PolicyName: DbSecretManagerAccess
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - "secretsmanager:DescribeSecret"
-                  - "secretsmanager:GetSecretValue"
+                  - secretsmanager:DescribeSecret
+                  - secretsmanager:GetSecretValue
                 Resource: "*"
-        - PolicyName: "XRayAccess"
+        - PolicyName: XRayAccess
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
-              - Effect: "Allow" # xray permissions (required)
+              - Effect: Allow # xray permissions (required)
                 Action:
-                  - "xray:PutTraceSegments"
-                  - "xray:PutTelemetryRecords"
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
                 Resource:
                   - "*"
 
 Outputs:
   AuthFunction:
-    Description: "The authorizer lambda ARN"
+    Description: The authorizer lambda ARN
     Value:
       Fn::GetAtt: AuthFunction.Arn

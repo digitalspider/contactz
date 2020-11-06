@@ -12,7 +12,7 @@ const METHOD = {
   GET: 'GET',
   PUT: 'PUT',
   DELETE: 'DELETE',
-}
+};
 const { HTTP_STATUS } = constants;
 const { NotFoundError, BadRequestError } = httpService;
 
@@ -22,11 +22,11 @@ async function route(req, res, next) {
   const pathContext = pathParts && pathParts.length > 1 ? pathParts[1] : null;
   logService.info('pathContext', pathContext);
   if (!pathContext) {
-    return { 'success': true };
+    return { success: true };
   }
   switch (pathContext) {
     case 'status':
-      return { 'success': true };
+      return { success: true };
     case 'user':
       return routeUser(req);
     case 'type':
@@ -124,12 +124,15 @@ async function crudFunction(req, res) {
             searchExact: qe || false, // false if q is defined
             sortColumn: sort,
             sortOrder,
-          }
+          };
         }
         result = await dbService.list(tableName, userId, limit, pageNo, searchOptions);
         if (result.results) {
-          result.results.map(data => mapService.dbToApi(tableName, userId, null, data));
-          result.results.map(data => { delete data.id; return data });
+          result.results.map((data) => mapService.dbToApi(tableName, userId, null, data));
+          result.results.map((data) => {
+            delete data.id;
+            return data;
+          });
         }
       } else {
         result = await dbService.get(tableName, userId, uuid);

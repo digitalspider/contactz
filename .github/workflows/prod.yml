@@ -15,8 +15,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
+
       - name: Create S3 Bucket (sam-contactz)
         run: aws s3api head-bucket --bucket sam-contactz --region ap-southeast-2
+
+      - name: sam build (infra/datastore/dynamo)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: build
+          directory: infra/datastore/dynamo
+      - name: sam deploy (infra/datastore/dynamo)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: "deploy --no-fail-on-empty-changeset"
+          directory: infra/datastore/dynamo
+
       # - name: sam build (infra/network)
       #   uses: TractorZoom/sam-cli-action@master
       #   with:
@@ -25,8 +38,9 @@ jobs:
       # - name: sam deploy (infra/network)
       #   uses: TractorZoom/sam-cli-action@master
       #   with:
-      #     sam_command: 'deploy --no-fail-on-empty-changeset'
+      #     sam_command: "deploy --no-fail-on-empty-changeset"
       #     directory: infra/network
+
       # - name: sam build (infra/domain)
       #   uses: TractorZoom/sam-cli-action@master
       #   with:
@@ -35,18 +49,20 @@ jobs:
       # - name: sam deploy (infra/domain)
       #   uses: TractorZoom/sam-cli-action@master
       #   with:
-      #     sam_command: 'deploy --no-fail-on-empty-changeset'
+      #     sam_command: "deploy --no-fail-on-empty-changeset"
       #     directory: infra/domain
-      # - name: sam build (infra/datastore)
+
+      # - name: sam build (infra/datastore/sql)
       #   uses: TractorZoom/sam-cli-action@master
       #   with:
       #     sam_command: build
-      #     directory: infra/datastore
-      # - name: sam deploy (infra/datastore)
+      #     directory: infra/datastore/sql
+      # - name: sam deploy (infra/datastore/sql)
       #   uses: TractorZoom/sam-cli-action@master
       #   with:
-      #     sam_command: 'deploy --no-fail-on-empty-changeset'
-      #     directory: infra/datastore
+      #     sam_command: "deploy --no-fail-on-empty-changeset"
+      #     directory: infra/datastore/sql
+
       # - name: npm install (infra/authorizer)
       #   run: cd infra/authorizer/dependencies/nodejs && npm install && cd ../../../..
       # - name: sam build (infra/authorizer)
@@ -59,6 +75,7 @@ jobs:
       #   with:
       #     sam_command: "deploy --no-fail-on-empty-changeset"
       #     directory: infra/authorizer
+
       # - name: sam build (api/config)
       #   uses: TractorZoom/sam-cli-action@master
       #   with:
@@ -67,23 +84,24 @@ jobs:
       # - name: sam deploy (api/config)
       #   uses: TractorZoom/sam-cli-action@master
       #   with:
-      #     sam_command: 'deploy --no-fail-on-empty-changeset'
-      #     directory: api/config
-      # - name: npm install (api/public)
-      #   uses: actions/setup-node@v1
-      #   with:
-      #     node-version: "12.x"
-      # - run: cd ./api/public/dependencies/nodejs
-      # - run: npm ci
-      # - run: npm test
-      # - run: cd ../../../..
-      # - name: sam build (api/public)
-      #   uses: TractorZoom/sam-cli-action@master
-      #   with:
-      #     sam_command: build
-      #     directory: api/public
-      # - name: sam deploy (api/public)
-      #   uses: TractorZoom/sam-cli-action@master
-      #   with:
       #     sam_command: "deploy --no-fail-on-empty-changeset"
-      #     directory: api/public
+      #     directory: api/config
+
+      - name: npm install (api/public)
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
+      - run: cd ./api/public/dependencies/nodejs
+      - run: npm ci
+      - run: npm test
+      - run: cd ../../../..
+      - name: sam build (api/public)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: build
+          directory: api/public
+      - name: sam deploy (api/public)
+        uses: TractorZoom/sam-cli-action@master
+        with:
+          sam_command: "deploy --no-fail-on-empty-changeset"
+          directory: api/public
