@@ -139,10 +139,10 @@ async function putItem({ tableName, item }) {
  * Encapsulate all methods related to contact
  * and hide internal dynamoDb structure
  */
-const contactDb = {
-  create: ({ partitionKey, sortKey }) =>
+const crud = {
+  create: ({ tableName, partitionKey, sortKey, body }) =>
     putItem({
-      tableName: TABLES.contact.name,
+      tableName,
       item: {
         [TABLES.contact.partitionKey]: {
           S: partitionKey,
@@ -150,21 +150,24 @@ const contactDb = {
         [TABLES.contact.sortKey]: {
           S: sortKey,
         },
+        ...body,
       },
     }),
-  readOne: async ({ partitionKey }) => {
+  readOne: async ({ partitionKey, sortKey }) => {
     const item = await getItem({
-      tableName: TABLES.contact.name,
+      tableName,
       partitionKey,
+      sortKey,
     });
     if (!item) return null;
     return item;
   },
-  delete: ({ partitionKey }) =>
+  delete: ({ partitionKey, sortKey }) =>
     deleteItem({
-      tableName: TABLES.contact.name,
+      tableName,
       partitionKey,
+      sortKey,
     }),
 };
 
-module.exports = { reset, getDynamoDB, getDynamoDbStreams, contactDb };
+module.exports = { reset, getDynamoDB, getDynamoDbStreams, crud };

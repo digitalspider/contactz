@@ -2,11 +2,16 @@ const userService = require('./userService');
 const authService = require('./authService');
 const httpService = require('./httpService');
 const dbService = require('./dbService');
+const dynamoService = require('./dynamoService');
 const mapService = require('./mapService');
 const logService = require('./logService');
 const constants = require('./constants');
+const utilService = require('./utilService');
 
-const RESERVED_TABLE_NAMES = ['group', 'role', 'user'];
+const TABLE_NAMES = {
+  contact: 'contact'
+};
+
 const METHOD = {
   POST: 'POST',
   GET: 'GET',
@@ -32,10 +37,6 @@ async function route(req, res, next) {
     case 'type':
       return routeType(req);
     case 'contact':
-    case 'org':
-    case 'address':
-    case 'tag':
-    case 'group':
       return crudFunction(req, res);
     default:
       throw new NotFoundError(`Invalid request. Path is invalid. path=${path}`);
@@ -94,7 +95,7 @@ async function crudFunction(req, res) {
   const pathParts = path ? path.split('/') : null;
   const body = typeof bodyValue === 'string' ? JSON.parse(bodyValue) : bodyValue;
   const pathContext = pathParts && pathParts.length > 1 ? pathParts[1] : null;
-  const tableName = RESERVED_TABLE_NAMES.includes(pathContext) ? pathContext + 's' : pathContext;
+  const tableName = TABLE_NAMES[pathContext];
   let result;
 
   const auth = await authService.authenticate(req, res);
@@ -106,11 +107,11 @@ async function crudFunction(req, res) {
     throw new BadRequestError('Authorization failed. No user available in request', HTTP_STATUS.UNAUTHORIZED);
   }
   const userId = user.id;
-  const uuid = req.params ? req.params.id : null;
-  logService.debug(`userId=${userId}. id=${uuid}`);
+  const { id } = req.params;
+  logService.debug(`userId=${userId}. id=${id}`);
   switch (method) {
     case METHOD.GET:
-      if (!uuid) {
+      if (!id) {
         let limit;
         let pageNo;
         let searchOptions;
@@ -135,33 +136,34 @@ async function crudFunction(req, res) {
           });
         }
       } else {
-        result = await dbService.get(tableName, userId, uuid);
-        await mapService.dbToApi(tableName, userId, uuid, result);
+        result = await dynamoService.crud.readOne({ tableName, partitionKey: id, sortKey: userId });
+        await mapService.dbToApi(tableName, userId, id, result);
         delete result.id;
       }
       break;
     case METHOD.POST:
-      await mapService.apiToDb(tableName, userId, null, body);
-      result = await dbService.create(tableName, userId, body);
+      // await mapService.apiToDb(tableName, userId, null, body);
+      id = utilService.generateId('C-');
+      result = await dynamoService.crud.create({ tableName, partitionKey: id, sortKey: userId, body });
       await mapService.apiToDbPost(tableName, userId, body, result.uuid || result.name);
       delete result.id;
       break;
     case METHOD.PUT:
-      if (!uuid) {
-        throw new BadR('Invalid request, no ID provided');
+      if (!id) {
+        throw new BadR('Invalid PUT request, no ID provided');
       }
-      await mapService.apiToDb(tableName, userId, uuid, body);
-      result = await dbService.update(tableName, userId, uuid, body);
+      // await mapService.apiToDb(tableName, userId, id, body);
+      result = await dynamoService.crud.update({ tableName, partitionKey: id, sortKey: userId, body });
       delete result.id;
       break;
     case METHOD.DELETE:
-      if (!uuid) {
-        throw new Error('Invalid request, no ID provided');
+      if (!id) {
+        throw new Error('Invalid DELETE request, no ID provided');
       }
-      result = await dbService.softDelete(tableName, userId, uuid);
+      result = await dynamoService.crud.delete({ tableName, partitionKey: id, sortKey: userId });
       break;
     default:
-      throw new Error(`Invalid request method: ${method}`);
+      throw new Error(`Invalid request method: ${method}. Expected GET, POST, PUT or DELETE`);
   }
   return result;
 }

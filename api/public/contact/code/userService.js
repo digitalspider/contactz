@@ -1,11 +1,12 @@
 const jwt = require('jsonwebtoken');
 const moment = require('moment');
 const md5 = require('md5');
-const dbService = require('./dbService');
+const dynamoService = require('./dynamoService');
 const httpService = require('./httpService');
 const logService = require('./logService');
 
 const issuer = 'https://api.contactz.com.au';
+const TABLE_NAME = 'user';
 const JWT_TOKEN_EXPIRY_IN_SEC = 4 * 60 * 60; // 4h
 const JWT_REFRESH_TOKEN_EXPIRY_IN_SEC = 14 * 24 * 60 * 60; // 14d
 const algorithm = 'HS256';
@@ -38,7 +39,6 @@ async function login(loginBody) {
     logService.debug('refreshToken', refreshToken);
   }
   await updateUserToken(user, token, refreshToken);
-  delete user.id;
   delete user.password;
   logService.debug('user', user);
   return user;
@@ -88,68 +88,50 @@ async function refreshToken(headers) {
 async function updateUserToken(user, token, refreshToken) {
   user.token = token;
   user.refresh_token = refreshToken && md5(refreshToken);
-  const updateTokenSqlQuery = `update ${dbService.TABLE.USERS} set token = $1, refresh_token = $2 where id = $3`;
-  const updateTokenValues = [token, refreshToken, user.id];
-  await dbService.executeSqlQuery(updateTokenSqlQuery, updateTokenValues);
+  dynamoService.crud.update({ tableName: TABLE_NAME, partitionKey: user.pk, sortKey: user.sk, body: user });
 }
 
 async function findUserTokenByRefreshToken(refreshToken) {
   const sqlQuery = `select refresh_token from ${dbService.TABLE.USERS} where md5(refresh_token) = $1`;
   const values = [refreshToken];
   const result = await dbService.executeSqlQuery(sqlQuery, values);
+  // dynamoService.crud.readOne({ tableName: TABLE_NAME, partitionKey: user.pk, sortKey: user.sk, body: user });
   if (result.rowCount > 0) {
     return result.rows[0]['refresh_token'];
   }
 }
 
 async function handleLogin({ username, password }) {
-  const sqlQuery = `select id, uuid from ${dbService.TABLE.USERS} where username = $1 and password = md5($2)`;
-  const values = [username, password];
-  const result = await dbService.executeSqlQuery(sqlQuery, values);
-  if (result.rowCount === 0) {
-    return null;
-  }
-  return getUserByUsername(username);
+  return dynamoService.crud.readOne({ tableName: TABLE_NAME, partitionKey: username, sortKey: md5(password) })
 }
 
-async function createUser({ username, password }) {
-  const sqlQuery = `insert into ${dbService.TABLE.USERS} (${dbService.COLUMN.CREATED_AT}, ${dbService.COLUMN.USERNAME}, ${dbService.COLUMN.PASSWORD}) VALUES (now(), $1, md5($2))`;
-  const values = [username, password];
-  return dbService.executeSqlQuery(sqlQuery, values);
+async function createUser({ username, password, organisation }) {
+  const body = {
+    created_at: new Date().toISOString(),
+    displayName: username,
+    organisation,
+  }
+  const result = await dynamoService.crud.create({ tableName: TABLE_NAME, partitionKey: username, sortKey: md5(password), body });
+  if (!result) {
+    return null;
+  }
+  return result;
 }
 
 async function getUserByUsername(username) {
-  const sqlQuery = `select id, uuid, username, contact_id, token from ${dbService.TABLE.USERS} where username = $1`;
-  const values = [username];
-  const result = await dbService.executeSqlQuery(sqlQuery, values);
-  if (result.rowCount === 0) {
+  const result = await dynamoService.crud.readOne({ tableName: TABLE_NAME, partitionKey: username });
+  if (!result) {
     return null;
   }
-  const user = result.rows[0];
-  user.org = await getUserOrgAndRole(user.id);
-  return user;
+  return result;
 }
 
 async function getUserByUuid(uuid) {
-  const sqlQuery = `select id, uuid, username, contact_id from ${dbService.TABLE.USERS} where uuid = $1`;
-  const values = [uuid];
-  const result = await dbService.executeSqlQuery(sqlQuery, values);
-  if (result.rowCount === 0) {
+  const result = await dynamoService.crud.readOne({ tableName: TABLE_NAME, partitionKey: uuid });
+  if (!result) {
     return null;
   }
-  const user = result.rows[0];
-  user.org = await getUserOrgAndRole(user.id);
-  return user;
-}
-
-async function getUserOrgAndRole(userId) {
-  const sqlQuery = `select o.*, user_id, user_role from org o, org_user u where u.org_id=o.id and u.user_id = $1`;
-  const values = [userId];
-  const result = await dbService.executeSqlQuery(sqlQuery, values);
-  if (result.rowCount === 0) {
-    return undefined;
-  }
-  return result.rows[0]; // TODO: User could potentially have multiple organisations
+  return result;
 }
 
 function getClaims(user) {
